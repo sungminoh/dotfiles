@@ -580,6 +580,7 @@ call s:auto_termguicolors()
 
 " apply base theme
 silent! colorscheme xoria256
+silent! colorscheme vividchalk
 
 " airline theme: status line and tab line
 if has('termguicolors') && &termguicolors

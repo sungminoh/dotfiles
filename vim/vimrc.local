@@ -1,49 +1,11 @@
-silent! colorscheme vividchalk
-
-" airline theme: status line and tab line
-if has("termguicolors") && &termguicolors
-  let g:airline_theme='deus'
-else
-  let g:airline_theme='bubblegum'
-endif
-
-
-" override more customized colors
-highlight StatusLine    ctermfg=LightGreen
-highlight ColorColumn   ctermbg=52 guibg=#5f0000
-
-highlight LineNr        ctermfg=248 ctermbg=233 guifg=#a8a8a8 guibg=#121212
-highlight SignColumn    ctermfg=248 ctermbg=233 guifg=#a8a8a8 guibg=#121212
-
-highlight Normal        ctermfg=255 guifg=white
-highlight Comment       ctermfg=035 guifg=#38B04A
-highlight Constant      ctermfg=204 guifg=#ff5f87
-highlight PreProc       ctermfg=219 guifg=#ffafff
-highlight SpecialKey    ctermfg=242 guifg=#666666
-
-" colors for gui/24bit mode {{
-" DiffAdd - inserted lines (dark green)
-highlight DiffAdd       guibg=#103a05 guifg=NONE
-" DiffDelete - deleted/filler lines (gray 246)
-highlight DiffDelete    guibg=#949494
-" DiffChange - changed lines (dark red)
-highlight DiffChange    guibg=#471515 guifg=NONE
-" DiffChange - changed 'text'(brighter red)
-highlight DiffText      guibg=#721b1b guifg=NONE
-" }}
-
+" Disable italic not to break style in tmux
+hi Comment gui=NONE
+hi railsUserClass  gui=NONE
+hi railsUserMethod gui=NONE
 
 " no underline, current cursor line
 highlight CursorLine    cterm=none ctermbg=232
 highlight Search        ctermbg=128
-
-" show cursorline for active window only
-augroup NrHighlight
-    autocmd!
-    autocmd BufEnter * setlocal cursorline
-    autocmd BufLeave * setlocal nocursorline
-augroup END
-
 
 
 
@@ -71,6 +33,7 @@ let g:java_space_errors = 1
 let g:java_comment_strings = 1
 let g:java_highlight_functions = 1
 let g:java_mark_braces_in_parens_as_errors = 1
+let g:JavaComplete_GradleExecutable = 'gradlew'
 
 
 
