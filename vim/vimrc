@@ -576,6 +576,7 @@ call s:auto_termguicolors()
 
 " apply base theme
 silent! colorscheme xoria256
+silent! colorscheme vividchalk
 
 " airline theme: status line and tab line
 if has('termguicolors') && &termguicolors
@@ -1574,6 +1575,9 @@ augroup secure_modeline_conflict_workaround
 augroup END
 
 " Use local vimrc if available
+if filereadable(expand('~/.vim/vimrc.local'))
+  source \~/.vim/vimrc.local
+endif
 if filereadable(expand('~/.vimrc.local'))
   source \~/.vimrc.local
 endif
