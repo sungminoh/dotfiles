@@ -46,6 +46,45 @@
 	# side-by-side diff, requires cdiff
 	sdiff = "! git diff $@ | cdiff -s -w0 "
 
+	alias = "!# Prints all aliases.;\n\
+    git config --list \
+    | egrep '^alias.+' \
+    | sed -e 's/^alias\\.//' \
+    | sed -e 's/^[^=]*=/\\'$'\\033[36m&\\033[(B\\033[m/' \
+    | column -t -s'=' \
+    | sed 's/!#* *//; s/;$//' \
+    | cut -c1-85"
+	ch = "! # checkout to a branch; \n\
+		f() { \
+			_height=$(stty size | awk '{print $2}');\
+			git branch | fzf --preview \"git history --color {1} | head -n $_height\"; \
+		}; f | xargs git checkout"
+	bd = "! # delete branches; \n\
+		f() { \
+			_height=$(stty size | awk '{print $2}'); \
+			git branch | fzf -m  --header \"Select branched to delete\" --preview \"git history --color {1} | head -n $_height\"; \
+		}; f | xargs git branch -d"
+	bD = "! # delete branches; \n\
+		f() { \
+			_height=$(stty size | awk '{print $2}'); \
+			git branch | fzf -m  --header \"Select branched to delete\" --preview \"git history --color {1} | head -n $_height\"; \
+		}; f | xargs git branch -D"
+    a = "! # add files with fzf preview diffs; \n\
+	    f() { \
+            _height=$(stty size | awk '{print $1}'); \
+			fileA=/tmp/git-s-$(uuidgen); \
+			fileB=/tmp/git-diff-$(uuidgen); \
+			git status -s | awk '{print $2,$1}' > $fileA; \
+			git diff --numstat | awk '{print $3,$1,$2}' > $fileB; \
+			join -t' ' -a 1 $fileA $fileB | awk '{print $2, \"(+\"$3 \",-\"$4\")\", $1}' | sed 's/(+,-)/./' | column -t -s' ' \
+			| fzf -m --header \"$(git diff --shortstat)\" --preview \
+				\"if [[ {1} == '??' ]]; then cat {3}; else git wdiff {3}; fi \
+				| head -n $_height\" \
+			| awk '{print $3}' \
+			| xargs git add; \
+			rm -f $fileA $fileB; \
+        }; f"
+
 [color]
 	status = auto
 	diff = auto
