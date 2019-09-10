@@ -54,6 +54,7 @@
     | column -t -s'=' \
     | sed 's/!#* *//; s/;$//' \
     | cut -c1-85"
+	sync= "!git fetch --all --prune && git rebase -p --autostash $1"
 	ch = "! # checkout to a branch; \n\
 		f() { \
 			_height=$(stty size | awk '{print $2}');\
@@ -84,6 +85,13 @@
 			| xargs git add; \
 			rm -f $fileA $fileB; \
         }; f"
+
+	resolve = "! # mergetool selector; \n\
+		f() { \
+			_height=$(stty size | awk '{print $2}');\
+			git diff --name-only --diff-filter=U | fzf --preview \"git wdiff {1} | head -n $_height\"; \
+		}; f | xargs git mergetool; \
+		find . -name '*.orig' -delete;"
 
 [color]
 	status = auto
@@ -129,6 +137,11 @@
 	# smarter diff on splits around blank lines (Git 2.9.0+)
 	compactionHeuristic = true
 
+    tool = intellij
+
+[difftool "intellij"]
+    cmd = /Applications/IntelliJ\\ IDEA.app/Contents/MacOS/idea diff $(cd $(dirname "$LOCAL") && pwd)/$(basename "$LOCAL") $(cd $(dirname "$REMOTE") && pwd)/$(basename "$REMOTE")
+
 [diff-so-fancy]
 	markEmptyLines = false
 	changeHunkIndicators = true
@@ -140,6 +153,11 @@
 
 [merge]
 	conflictstyle = diff3
+    tool = intellij
+
+[mergetool "intellij"]
+    cmd = /Applications/IntelliJ\\ IDEA.app/Contents/MacOS/idea merge $(cd $(dirname "$LOCAL") && pwd)/$(basename "$LOCAL") $(cd $(dirname "$REMOTE") && pwd)/$(basename "$REMOTE") $(cd $(dirname "$BASE") && pwd)/$(basename "$BASE") $(cd $(dirname "$MERGED") && pwd)/$(basename "$MERGED")
+    trustExitCode = true
 
 [format]
 	# based on 'fuller' format, but adds color customization
