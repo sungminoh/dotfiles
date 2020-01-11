@@ -47,13 +47,13 @@
 	sdiff = "! git diff $@ | cdiff -s -w0 "
 
 	alias = "!# Prints all aliases.;\n\
-    git config --list \
-    | egrep '^alias.+' \
-    | sed -e 's/^alias\\.//' \
-    | sed -e 's/^[^=]*=/\\'$'\\033[36m&\\033[(B\\033[m/' \
-    | column -t -s'=' \
-    | sed 's/!#* *//; s/;$//' \
-    | cut -c1-85"
+	git config --list \
+	| egrep '^alias.+' \
+	| sed -e 's/^alias\\.//' \
+	| sed -e 's/^[^=]*=/\\'$'\\033[36m&\\033[(B\\033[m/' \
+	| column -t -s'=' \
+	| sed 's/!#* *//; s/;$//' \
+	| cut -c1-85"
 	sync= "!git fetch --all --prune && git rebase -p --autostash $1"
 	ch = "! # checkout to a branch; \n\
 		f() { \
@@ -70,9 +70,9 @@
 			_height=$(stty size | awk '{print $2}'); \
 			git branch | fzf -m  --header \"Select branched to delete\" --preview \"git history --color {1} | head -n $_height\"; \
 		}; f | xargs git branch -D"
-    a = "! # add files with fzf preview diffs; \n\
-	    f() { \
-            _height=$(stty size | awk '{print $1}'); \
+	a = "! # add files with fzf preview diffs; \n\
+		f() { \
+			_height=$(stty size | awk '{print $1}'); \
 			fileA=/tmp/git-s-$(uuidgen); \
 			fileB=/tmp/git-diff-$(uuidgen); \
 			git status -s | awk '{print $2,$1}' > $fileA; \
@@ -84,7 +84,7 @@
 			| awk '{print $3}' \
 			| xargs git add; \
 			rm -f $fileA $fileB; \
-        }; f"
+		}; f"
 
 	resolve = "! # mergetool selector; \n\
 		f() { \
@@ -137,10 +137,10 @@
 	# smarter diff on splits around blank lines (Git 2.9.0+)
 	compactionHeuristic = true
 
-    tool = intellij
+	tool = intellij
 
 [difftool "intellij"]
-    cmd = /Applications/IntelliJ\\ IDEA.app/Contents/MacOS/idea diff $(cd $(dirname "$LOCAL") && pwd)/$(basename "$LOCAL") $(cd $(dirname "$REMOTE") && pwd)/$(basename "$REMOTE")
+	cmd = /Applications/IntelliJ\\ IDEA.app/Contents/MacOS/idea diff $(cd $(dirname "$LOCAL") && pwd)/$(basename "$LOCAL") $(cd $(dirname "$REMOTE") && pwd)/$(basename "$REMOTE")
 
 [diff-so-fancy]
 	markEmptyLines = false
@@ -153,18 +153,18 @@
 
 [merge]
 	conflictstyle = diff3
-    tool = intellij
+	tool = intellij
 
 [mergetool "intellij"]
-    cmd = /Applications/IntelliJ\\ IDEA.app/Contents/MacOS/idea merge $(cd $(dirname "$LOCAL") && pwd)/$(basename "$LOCAL") $(cd $(dirname "$REMOTE") && pwd)/$(basename "$REMOTE") $(cd $(dirname "$BASE") && pwd)/$(basename "$BASE") $(cd $(dirname "$MERGED") && pwd)/$(basename "$MERGED")
-    trustExitCode = true
+	cmd = /Applications/IntelliJ\\ IDEA.app/Contents/MacOS/idea merge $(cd $(dirname "$LOCAL") && pwd)/$(basename "$LOCAL") $(cd $(dirname "$REMOTE") && pwd)/$(basename "$REMOTE") $(cd $(dirname "$BASE") && pwd)/$(basename "$BASE") $(cd $(dirname "$MERGED") && pwd)/$(basename "$MERGED")
+	trustExitCode = true
 
 [format]
 	# based on 'fuller' format, but adds color customization
 	pretty = "%C(bold)commit%C(reset) %C(yellow)%H%C(auto)%d%n\
-%C(bold)Author:    %C(reset) %C(blue bold)%an <%ae>%n\
+%C(bold)Author:	%C(reset) %C(blue bold)%an <%ae>%n\
 %C(bold)AuthorDate:%C(reset) %C(green)%ai (%ar)%C(reset)%n\
-%C(bold)Commit:    %C(reset) %C(blue bold)%cn <%ce>%n\
+%C(bold)Commit:	%C(reset) %C(blue bold)%cn <%ce>%n\
 %C(bold)CommitDate:%C(reset) %C(green)%ci (%cr)%C(reset)%n\
 %w(0,0,4)%+B"
 
