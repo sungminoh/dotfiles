@@ -1,0 +1,122 @@
+" Disable italic not to break style in tmux
+hi Comment gui=NONE
+hi railsUserClass  gui=NONE
+hi railsUserMethod gui=NONE
+
+" no underline, current cursor line
+highlight CursorLine    cterm=none ctermbg=232
+highlight Search        ctermbg=128
+
+
+
+" Sungmin
+set statusline+=%#warningmsg#
+"set statusline+=%{SyntasticStatuslineFlag()}
+set statusline+=%*
+
+" Syntastic
+"let g:syntastic_always_populate_loc_list = 1
+"let g:syntastic_auto_loc_list = 1
+"let g:syntastic_check_on_open = 0
+"let g:syntastic_check_on_wq = 0
+"map <leader>stx = :SyntasticToggleMode<CR>
+
+" c++
+"let g:syntastic_cpp_compiler = 'clang++'
+"let g:syntastic_cpp_compiler_options = '-std=c++11 -stdlib=libc++'
+
+"java"
+"let g:java_highlight_java_lang_ids = 1
+let g:java_highlight_java_io=1
+let g:java_highlight_functions="indent"
+let g:java_space_errors = 1
+let g:java_comment_strings = 1
+"let g:java_highlight_functions = 1
+"let g:java_mark_braces_in_parens_as_errors = 1
+let g:JavaComplete_GradleExecutable = 'gradlew'
+
+
+
+" javascript
+set foldmethod=syntax
+"let g:syntastic_javascript_checkers = ['eslint']
+autocmd FileType css setlocal omnifunc=csscomplete#CompleteCSS
+let g:deoplete#omni#functions = {}
+let g:deoplete#omni#functions.javascript = ['tern#Complete', 'jspc#omni']
+let g:deoplete#sources = {}
+let g:deoplete#sources['javascript.jsx'] = ['file', 'ultisnips', 'ternjs']
+" tern for js
+let g:tern#command = ['tern']
+let g:tern#arguments = ['--persistent']
+
+noremap <leader>= :vertical resize +5<CR>
+noremap <leader>- :vertical resize -5<CR>
+map <leader>where :NERDTreeFind<CR>
+
+
+" Style
+call glaive#Install()
+Glaive codefmt google_java_executable="java -jar /Users/sungmin/Google_Drive/_sync/setting/google-java-format-1.5-all-deps.jar"
+augroup autoformat_settings
+  autocmd FileType bzl AutoFormatBuffer buildifier
+  autocmd FileType c,cpp,proto,javascript AutoFormatBuffer clang-format
+  autocmd FileType dart AutoFormatBuffer dartfmt
+  autocmd FileType go AutoFormatBuffer gofmt
+  autocmd FileType gn AutoFormatBuffer gn
+  autocmd FileType html,css,json AutoFormatBuffer js-beautify
+  autocmd FileType java AutoFormatBuffer google-java-format
+  autocmd FileType python AutoFormatBuffer autopep8
+augroup END
+
+
+"################################################################################
+
+function! MoveTo()
+    call inputsave()
+    let pattern = input('move to: ')
+    call inputrestore()
+    exe "normal! /" . pattern . "\<CR>"
+endfunction
+
+function! ReplaceSearch()
+    call inputsave()
+    let replacement = input('Enter replacement:')
+    call inputrestore()
+    execute '%s//'.replacement.'/gc'
+endfunction
+command! -nargs=0 Replace call ReplaceSearch()
+
+" Find file in current directory and edit it.
+function! Find(name)
+  let l:list=system("find . -name '".a:name."' | perl -ne 'print \"$.\\t$_\"'")
+" replace above line with below one for gvim on windows
+" let l:list=system("find . -name ".a:name." | perl -ne \"print qq{$.\\t$_}\"")
+  let l:num=strlen(substitute(l:list, "[^\n]", "", "g"))
+  if l:num < 1
+    echo "'".a:name."' not found"
+    return
+  endif
+  if l:num != 1
+    echo l:list
+    let l:input=input("Which ? (CR=nothing)\n")
+    if strlen(l:input)==0
+      return
+    endif
+    if strlen(substitute(l:input, "[0-9]", "", "g"))>0
+      echo "Not a number"
+      return
+    endif
+    if l:input<1 || l:input>l:num
+      echo "Out of range"
+      return
+    endif
+    let l:line=matchstr("\n".l:list, "\n".l:input."\t[^\n]*")
+  else
+    let l:line=l:list
+  endif
+  let l:line=substitute(l:line, "^[^\t]*\t./", "", "")
+  execute ":e ".l:line
+endfunction
+command! -nargs=1 Find :call Find("<args>")
+
+let g:email = "smoh2044@gmail.com"
