@@ -274,6 +274,7 @@ if has('nvim')
     autocmd TermOpen * startinsert
 
     " terminal in a new tab or vsplit buffer
+    command! -nargs=* T :Term <args>
     command! -nargs=* Term :tabnew | :term <args>
     command! -nargs=* STerm :split | :term <args>
     command! -nargs=* VTerm :split | :term <args>
@@ -985,9 +986,23 @@ command! -bang -nargs=? GFiles     call fzf#vim#gitfiles(<q-args>, <q-args> != '
 
 " :F is a shortcut for :GFiles or :FZF
 function! s:get_git_dir()
-  return fugitive#extract_git_dir(expand('%:p'))
+  let curr = expand('%:p')
+  if empty(curr)   " empty buffer, etc.: fall back to current dir
+    let curr = getcwd()
+  endif
+  return fugitive#extract_git_dir(curr)
 endfunction
 function! s:fzf_smart()
+  " if a FZF tree/explorer is shown, invoke :Files (with preview) rather than :GFiles
+  if &filetype == 'nerdtree'
+    let l:target_path = b:NERDTree.root.path._str()
+    " if the current buffer is the pinned on in the tab (vim-nerdtree-tabs),
+    " let fzf open files in another window. Otherwise, open in the current window.
+    if exists('t:NERDTreeBufName') && bufname('%') == t:NERDTreeBufName
+      wincmd w   " we need to move the focus outside nerdtree
+    endif
+    call fzf#vim#files(l:target_path, fzf#vim#with_preview()) | return
+  endif
   " in a git repo, invoke :GFiles (plus untracked files)
   if ! empty(s:get_git_dir()) | GFiles -c -o --exclude-standard
   " not in git repo, invoke :FZF by fallback
@@ -1116,6 +1131,19 @@ let g:floaterm_background = '#1a2a31'
 
 command! -nargs=0 FT FloatermToggle
 
+" Use 90% width for floaterm. If error occurs, update the plugin
+let g:floaterm_width = 0.9
+let g:floaterm_height = 0.7
+
+augroup FloatermCustom
+  autocmd!
+  " <C-h>, <C-z>: Hide the floating terminal window
+  autocmd FileType floaterm tmap <silent> <C-h>
+        \ <C-\><C-n>:hide<CR>
+  autocmd FileType floaterm tmap <silent> <C-z>
+        \ <C-\><C-n>:hide<CR>
+augroup END
+
 " ---------------------------------------------------------------- }}}
 " Dash {{{
 
@@ -1159,7 +1187,7 @@ let NERDTreeIgnore = ['\.pyc$', '\.class$', '\.o$']
 
 let g:voom_ft_modes = {'pandoc': 'markdown', 'tex': 'latex'}
 
-nnoremap <leader>V :VoomToggle<CR>
+"nnoremap <leader>V :VoomToggle<CR>
 
 " ---------------------------------------------------------------- }}}
 " Easymotion {{{
@@ -1454,6 +1482,8 @@ if has('mac')
   endif
 endif
 
+nnoremap <leader>V :VimtexTocOpen<CR>
+
 " ---------------------------------------------------------------- }}}
 " fugitive {{{
 
@@ -1552,8 +1582,8 @@ if has_key(g:plugs, 'coc.nvim')
   " Go to definitions
   noremap <silent> <F3> :CocJumpDefinition<CR>
   noremap <silent> <F12> :CocJumpDefinition<CR>
-  command! -nargs=0 CocJumpDefinition :call CocAction('jumpDefinition')
-  command! -nargs=0 JumpDefinition :call CocAction('jumpDefinition')
+  command! -nargs=0 CocJumpDefinition :call CocActionAsync('jumpDefinition')
+  command! -nargs=0 JumpDefinition :call CocActionAsync('jumpDefinition')
 
   " Remap keys for gotos
   nmap <silent> gd <Plug>(coc-definition)
@@ -1636,6 +1666,7 @@ endif
 augroup secure_modeline_conflict_workaround
   autocmd!
   autocmd FileType help setlocal nomodeline
+  autocmd FileType GV setlocal nomodeline
 augroup END
 
 " Use local vimrc if available
