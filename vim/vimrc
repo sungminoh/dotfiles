@@ -90,6 +90,9 @@ if has('nvim')
   set inccommand=split
 endif
 
+" When jumping to line, folds on the line should be opened (:help 'foldopen')
+set foldopen+=jump
+
 " use spaces for tabbing, by default
 set expandtab
 
@@ -461,14 +464,24 @@ nmap <silent> <leader>cd :call CD_to_file()<CR>
 
 " <leader>R : screen sucks, redraw everything
 function! Redraw()
-  redraw!
+  :mode
   call s:auto_termguicolors()   " re-detect true colors
 endfunction
-nnoremap <leader>R :call Redraw()<CR>
+nnoremap <silent> <leader>R :call Redraw()<CR>
 
 " <leader>src : source ~/.vimrc
 nnoremap <leader>src :source ~/.vimrc<CR>
-command! -nargs=0 Vimrc tabnew ~/.vimrc
+
+" :Vimrc opens vim config files in a new tab
+command! -nargs=0 Vimrc   call s:open_vimrc_tab()
+function! s:open_vimrc_tab()
+  tabnew ~/.vim/vimrc
+  botright vnew ~/.vim/plugins.vim
+  if filereadable(expand("~/.vim/plugins.local.vim"))
+    10sp ~/.vim/plugins.local.vim
+  endif
+  wincmd t  " focus on the first buffer (~/.vimrc)
+endfunction
 
 " <leader>{y,x,p} : {yank,cut,paste} wrt the system clipboard
 map <leader>y "*y
@@ -610,6 +623,7 @@ highlight Comment       ctermfg=035 guifg=#38B04A
 highlight Constant      ctermfg=204 guifg=#ff5f87
 highlight PreProc       ctermfg=219 guifg=#ffafff
 highlight SpecialKey    ctermfg=242 guifg=#666666
+highlight Folded        ctermbg=60  guibg=#404056
 
 " colors for gui/24bit mode {{
 " DiffAdd - inserted lines (dark green)
@@ -759,6 +773,20 @@ let g:startify_skiplist = [
     \ 'plugged/.*/doc',
     \ 'bundle/.*/doc',
     \ ]
+
+" ---------------------------------------------------------------- }}}
+" vim-eunuch {{{
+
+" remove all rm-like commands, which are too dangerous (even no confirm...)
+if has_key(g:plugs, 'vim-eunuch')
+  autocmd VimEnter * call s:remove_eunuch_commands()
+  function! s:remove_eunuch_commands()
+    if exists('g:loaded_eunuch')
+      delcommand Remove | delcommand Delete | delcommand Unlink
+    endif
+  endfunction
+endif
+
 " ---------------------------------------------------------------- }}}
 " vim-emoji {{{
 
@@ -1256,12 +1284,30 @@ xmap ga <Plug>(EasyAlign)
 nmap ga <Plug>(EasyAlign)
 
 " ---------------------------------------------------------------- }}}
+" indentLine {{{
+
+" conceal might break latex/json/markdown syntax, etc.
+" see also after/ftplugin/*.vim settings for conceal level configuration.
+let g:indentLine_conceallevel = 1
+
+" conceal values might not work well for tex files (hides some characters)
+let g:indentLine_fileTypeExclude = ['tex', 'markdown']
+
+" command alias
+command! -nargs=0 ToggleIndentLines   :IndentLinesToggle
+
+" ---------------------------------------------------------------- }}}
 " UltiSnips {{{
 let g:UltiSnipsExpandTrigger = '<c-j>'
 let g:UltiSnipsJumpForwardTrigger = '<c-j>'
 let g:UltiSnipsJumpBackwardTrigger = '<c-k>'
 
+" edit snippets: split the window vertically or horizontally
+let g:UltiSnipsEditSplit = 'context'
+let g:UltiSnipsSnippetDirectories = [$HOME . '/.vim/UltiSnips']
+
 command! -nargs=0 UltiSnipsRefreshSnippets :call UltiSnips#RefreshSnippets()
+command! -nargs=0 RefreshUltiSnips         :UltiSnipsRefreshSnippets
 
 augroup UltiSnipsAutoReload
   autocmd!
@@ -1729,4 +1775,4 @@ endif
 
 " }}}
 
-" vim: set ts=2 sts=2 sw=2 foldmethod=marker foldlevel=1:
+" vim: set ts=2 sts=2 sw=2 foldmethod=marker foldlevel=2:
