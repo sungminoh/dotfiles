@@ -1203,8 +1203,22 @@ let g:floaterm_background = '#1a2a31'
 hi FloatermNF       guibg=#1a2a31
 hi FloatermBorderNF guibg=#1a2a31 guifg=white
 
-
-command! -nargs=0 FT FloatermToggle
+command! -nargs=? -complete=shellcmd  FT                   call FloatermToggleOrNew(<f-args>)
+command! -nargs=? -complete=shellcmd  FloatermToggleOrNew  call FloatermToggleOrNew(<f-args>)
+function! FloatermToggleOrNew(...) abort
+  let ft_bufnr = floaterm#buflist#find_curr()
+  if ft_bufnr == -1
+    if a:0 > 0
+      " when there is no existing floaterm window and an argument is given,
+      " use it as the command line to execute (e.g. :FT git status)
+      return floaterm#new(a:1)
+    else
+      return floaterm#new()
+    endif
+  else
+    FloatermToggle
+  endif
+endfunction
 
 " Use 90% width for floaterm. If error occurs, update the plugin
 let g:floaterm_width = 0.9
@@ -1213,9 +1227,9 @@ let g:floaterm_height = 0.7
 augroup FloatermCustom
   autocmd!
   " <C-h>, <C-z>: Hide the floating terminal window
-  autocmd FileType floaterm tmap <silent> <C-h>
+  autocmd FileType floaterm tmap <buffer> <silent> <C-h>
         \ <C-\><C-n>:hide<CR>
-  autocmd FileType floaterm tmap <silent> <C-z>
+  autocmd FileType floaterm tmap <buffer> <silent> <C-z>
         \ <C-\><C-n>:hide<CR>
 augroup END
 
@@ -1720,6 +1734,7 @@ if has_key(g:plugs, 'coc.nvim')
   " Quickfix (Alt-Enter)
   command! -nargs=0 CocQuickfix :call CocActionAsync('doQuickfix', ':update')
   nmap <silent> <M-CR>  <Plug>(coc-fix-current)
+  imap <silent> <M-CR>  <Esc>:update<CR><plug>(coc-fix-current)a
 
   " Automatic formatting (selected range or entire buffer)
   command! -range=% CocFormat    :call CocActionAsync('formatSelected', visualmode())
