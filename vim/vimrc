@@ -460,7 +460,8 @@ function! CD_to_file()
     :NERDTreeCWD | wincmd w
   endif
 endfunction
-nmap <silent> <leader>cd :call CD_to_file()<CR>
+nmap <silent> <leader>cd :<C-U>CD<CR>
+command! -nargs=0   CD   :call CD_to_file()
 
 " <leader>R : screen sucks, redraw everything
 function! Redraw()
@@ -1923,6 +1924,13 @@ if has_key(g:plugs, 'coc.nvim')
     endif
   endfunction
 
+endif
+
+" ---------------------------------------------------------------- }}}
+" coc-fzf {{{
+
+if has_key(g:plugs, 'coc-fzf')
+  " Nothing to configure as of now
 endif
 
 " ---------------------------------------------------------------- }}}
