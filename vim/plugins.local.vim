@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 Plug 'tmhedberg/SimpylFold'
 Plug 'konfekt/fastfold'
 "Plug 'scrooloose/syntastic'
