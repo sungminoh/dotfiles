@@ -277,12 +277,11 @@ if has('nvim')
   autocmd TermOpen * startinsert
 
   " terminal in a new tab or vsplit buffer
-  command! -nargs=* T :Term <args>
-  command! -nargs=* Term :tabnew | :term <args>
-  command! -nargs=* STerm :split | :term <args>
-  command! -nargs=* VTerm :split | :term <args>
-  command! -nargs=* TermSplit :split | :term <args>
-  command! -nargs=* TermVSplit :vsplit | :term <args>
+  command! -nargs=* -complete=shellcmd Term         :tabnew | :term <args>
+  command! -nargs=* -complete=shellcmd STerm        :split  | :term <args>
+  command! -nargs=* -complete=shellcmd VTerm        :split  | :term <args>
+  command! -nargs=* -complete=shellcmd TermSplit    :split  | :term <args>
+  command! -nargs=* -complete=shellcmd TermVSplit   :vsplit | :term <args>
 
   " Mapping for <c-hjkl> in terminal mode
   " <c-h> might not work: see https://github.com/neovim/neovim/issues/2048
@@ -453,14 +452,16 @@ endif
 
 " <leader>cd : switch to the directory of the current buffer
 function! CD_to_file()
-  cd %:p:h
+  silent cd %:p:h
+  :pwd
 
   " if NERDTree is open, chdir NERDTree as well
   if exists('g:NERDTree') && g:NERDTree.IsOpen()
     :NERDTreeCWD | wincmd w
   endif
 endfunction
-nmap <silent> <leader>cd :call CD_to_file()<CR>
+nmap <silent> <leader>cd :<C-U>CD<CR>
+command! -nargs=0   CD   :call CD_to_file()
 
 " <leader>R : screen sucks, redraw everything
 function! Redraw()
@@ -1121,92 +1122,30 @@ function! s:rg_star_to_cword(args) abort
   endif
 endfunction
 
-function! s:fzfrg_bind_keymappings(query, rg_options) abort
-  " additional keymappings on the fzf window (e.g. move to quickfix)
-  " Args:
-  " - query: the rg pattern string (will be escaped inside)
-  " - rg_options: additional flags passed to rg (passed to shell as-is)
-  let t:FzfRg_last_query = a:query
-  let t:FzfRg_last_options = a:rg_options
-  if !empty(t:FzfRg_last_query)
-    " CTRL-Q (unless query is empty) -> call rg again into the quickfix
-    tnoremap <silent> <buffer> <C-q>    <C-\><C-n>:call timer_start(0, {
-          \ -> ag#Ag('grep!', shellescape(t:FzfRg_last_query) . " " . t:FzfRg_last_options)
-          \ })<CR>:q<CR>
-  endif
-endfunction
 " }}}
 
-" :Rg -- Ripgrep + fzf (grep then fuzzy-filter)
-command! -bang -nargs=* Rg call FzfRg(<q-args>, <bang>0)
-nnoremap <leader>rg   :Rg<space>
+" fzf-ripgrep.vim
+" [@migrated] :Rg, :RgFzf are defined in ~/.vim/plugged/fzf-ripgrep.vim/plugin/fzf_ripgrep.vim
+"
+" :RgFzf, :RF -- Ripgrep + fzf (grep then fuzzy-filter)
+command! -nargs=*     RF      :RgFzf <args>
+
+" :Rg, :Grep -- Ripgrep + fzf (but refreshs ripgrep result upon updating query)
+command! -nargs=*     Grep    :Rg <args>
+
+" rg-this (current cursor or visual selection)
+nnoremap <leader>rg   :<c-u>Rg*<CR>
 xnoremap <leader>rg   "gy:Rg <C-R>g<CR>
 
-function! FzfRg(args, fullscreen) abort
-  let fzf_opts_prompt = ['--prompt', printf('Rg'.'%s> ', empty(a:args) ? '' : (' ('.a:args.')'))]
-  let fzf_opts_header = ['--ansi', '--header',
-        \ ':: Press '.s:magenta('?', 'Special').' to toggle preview, '
-        \ . (!empty(a:args) ? s:magenta('CTRL-Q', 'Special').' to switch to quickfix' : '')
-        \ .nr2char(10). '   To refresh ripgrep results rather than fuzzy-filtering, try '.s:magenta(':RG', 'Special').' instead.'
-        \ ]
-  let fzf_opts_contentsonly = ['--delimiter', ':', '--nth', '4..']   " fzf.vim#346
-  let fzf_opts = fzf_opts_prompt + fzf_opts_header + fzf_opts_contentsonly
-  call fzf#vim#grep(
-        \ 'rg -i --column --line-number --no-heading --color=always '.shellescape(s:rg_star_to_cword(a:args)), 1,
-        \ a:fullscreen ? fzf#vim#with_preview({'options': fzf_opts}, 'up:60%')
-        \              : fzf#vim#with_preview({'options': fzf_opts}, 'right:50%', '?'),
-        \ a:fullscreen)
-  call s:fzfrg_bind_keymappings(s:rg_star_to_cword(a:args), '')
-endfunction
-
-" :RG, :Grep -- Ripgrep + fzf (but refreshs ripgrep result upon updating query)
-command! -nargs=* -bang RG      call FzfRG(<q-args>, <bang>0)
-command! -nargs=*       Grep    :RG <args>
-" fzf 0.19+ "reload' magic: https://github.com/junegunn/fzf/issues/1750
-function! FzfRG(query, fullscreen)
-  let command_fmt = 'rg --column --line-number --no-heading --color=always --smart-case %s || true'
-  let initial_command = printf(command_fmt, shellescape(a:query))
-  let reload_command = printf(command_fmt, '{q}')
-  let fzf_opts = [
-        \ '--phony', '--query', a:query, '--bind', 'change:reload:'.reload_command,
-        \ '--prompt', 'RG> ']
-  call fzf#vim#grep(initial_command, 1, fzf#vim#with_preview({'options': fzf_opts}), a:fullscreen)
-endfunction
-
-
-" :Def, Rgdef -- Easily find definition/declaration (requires ripgrep)
+" :Def, :RgDef -- Easily find definition/declaration (requires ripgrep)
 " e.g. :Def class, :Def def, :Def myfunc, :Def class MyClass
-command! -bang -nargs=* Rgdef   call FzfRgDef(<q-args>, <bang>0)
-command! -bang -nargs=* Def     call FzfRgDef(<q-args>, <bang>0)
-command! -bang -nargs=* D       call FzfRgDef(<q-args>, <bang>0)
-nnoremap <leader>def  :<C-U>Def<CR>
+command! -bang -nargs=* Def     :RgDef <args>
+command! -bang -nargs=* D       :RgDef <args>
 
-function! FzfRgDef(args, fullscreen) abort
-  " TODO: currently, only python is supported.
-  let l:query = s:rg_star_to_cword(a:args)
-  let l:rgdef_type = '--type "py"'
-  let l:rgdef_prefix = '^\s*(def|class)'
-  let l:rgdef_pattern = l:rgdef_prefix.' \w*'.l:query.'\w*'
+" def-this (current cursor or visual selection)
+nnoremap <leader>def  :<C-U>Def*<CR>
+xnoremap <leader>def  "gy:Def <C-R>g<CR>
 
-  " if the query itself starts with prefix patterns, let itself be the regex pattern
-  if a:args =~ ('\v'.l:rgdef_prefix.'($|\s+)')
-    let l:rgdef_pattern = '^\s*'.a:args
-  endif
-
-  let fzf_opts_prompt = ['--prompt', printf('RgDef'.'%s> ', empty(a:args) ? '' : (' ('.a:args.')'))]
-  let fzf_opts_header = ['--ansi', '--header',
-        \ s:yellow('(Tip)').' Press '.s:magenta('?', 'Special').' to toggle preview, '
-        \ . s:magenta('CTRL-Q', 'Special').' to switch to quickfix'
-        \ ]
-  let fzf_opts_contentsonly = ['--delimiter', ':', '--nth', '4..']   " fzf.vim#346
-  let fzf_opts = fzf_opts_prompt + fzf_opts_header + fzf_opts_contentsonly
-  call fzf#vim#grep(
-        \ 'rg -i --column --line-number --no-heading --color=always '.l:rgdef_type.' '.shellescape(l:rgdef_pattern), 1,
-        \ a:fullscreen ? fzf#vim#with_preview({'options': fzf_opts}, 'up:60%')
-        \              : fzf#vim#with_preview({'options': fzf_opts}, 'right:50%', '?'),
-        \ a:fullscreen)
-  call s:fzfrg_bind_keymappings(l:rgdef_pattern, l:rgdef_type)
-endfunction
 
 
 " FZF-based finder commands
@@ -1303,8 +1242,11 @@ let g:floaterm_background = '#1a2a31'
 hi FloatermNF       guibg=#1a2a31
 hi FloatermBorderNF guibg=#1a2a31 guifg=white
 
-command! -nargs=? -complete=shellcmd  FT                   call FloatermToggleOrNew(<f-args>)
+command! -nargs=? -complete=shellcmd  T                    :FloatermToggleOrNew <args>
+command! -nargs=? -complete=shellcmd  FT                   :FloatermToggleOrNew <args>
 command! -nargs=? -complete=shellcmd  FloatermToggleOrNew  call FloatermToggleOrNew(<f-args>)
+nnoremap <leader>tt  :FloatermToggle<CR>
+"
 function! FloatermToggleOrNew(...) abort
   let ft_bufnr = floaterm#buflist#find_curr()
   if ft_bufnr == -1
@@ -1923,6 +1865,13 @@ if has_key(g:plugs, 'coc.nvim')
     endif
   endfunction
 
+endif
+
+" ---------------------------------------------------------------- }}}
+" coc-fzf {{{
+
+if has_key(g:plugs, 'coc-fzf')
+  " Nothing to configure as of now
 endif
 
 " ---------------------------------------------------------------- }}}

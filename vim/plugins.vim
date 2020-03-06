@@ -28,6 +28,7 @@ endif
 " Integration and Interfaces
 Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': './install --all --no-update-rc' }
 Plug 'junegunn/fzf.vim'
+Plug 'wookayin/fzf-ripgrep.vim'
 if has('nvim-0.4.0')
   Plug 'liuchengxu/vim-clap'
   Plug 'voldikss/vim-floaterm'
@@ -188,6 +189,7 @@ function! s:configure_coc_nvim()
     "Plug 'neoclide/coc.nvim', {'do': function('coc#util#install') }   " from source
     Plug 'neoclide/coc.nvim', {'branch': 'release'}                    " released binary
     Plug 'neoclide/jsonc.vim'
+    Plug 'antoinemadec/coc-fzf'
 
     " coc supercedes deoplete and supertab
     UnPlug 'Shougo/deoplete.nvim'
