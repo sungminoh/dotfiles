@@ -43,6 +43,7 @@ fi
 # nvm -- sourcing is very slow, use lazy load
 if [[ -f "$HOME/.nvm/nvm.sh" ]]; then
   function nvm() {
+    unfunction nvm
     source "$HOME/.nvm/nvm.sh"
     nvm "$@"
   }
@@ -63,6 +64,11 @@ export FZF_MARKS_JUMP='^b'
 
 # ------------------------------------------------------ }}}
 
+# Cleanup obsolete zgen plugins (zgen reset doesn't ignore)
+if [[ -n "${DOTFILES_UPDATE}" ]]; then
+  rm -rf ~/.zgen/zdharma/fast-syntax-highlighting-master
+fi
+
 # zgen plugin specifications
 # NOTE: To reflect the added/updated plugins, try 'zgen reset'
 if ! zgen saved; then
@@ -80,7 +86,8 @@ if ! zgen saved; then
 
   # zsh syntax: FSH
   # theme file (XDG:wook) is at ~/.config/fsh/wook.ini
-  zgen load zdharma/fast-syntax-highlighting
+  # For some reason, @zdharma's repo is gone -- workaround by using its fork
+  zgen load wookayin/fast-syntax-highlighting
   fast-theme "XDG:wook"
 
   # More completion support
@@ -134,6 +141,7 @@ fi
 
 # Anaconda3
 # see ~/.zshenv for $CONDA_EXE detection
+function _conda_initialize() {
 # >>> conda initialize >>>
 if [ -n "${CONDA_EXE}" ]; then
   ${CONDA_EXE} config --set auto_activate_base false
@@ -144,6 +152,13 @@ if [ -n "${CONDA_EXE}" ]; then
   unset __conda_setup
 fi
 # <<< conda initialize <<<
+}
+# Note: conda initialize is slow (0.3 sec), so execute lazily
+conda() {
+  unfunction conda
+  _conda_initialize
+  conda "$@"
+}
 
 # fzf
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh

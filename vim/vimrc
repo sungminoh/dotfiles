@@ -33,7 +33,10 @@ autocmd VimEnter *
 
 filetype plugin on
 filetype indent on
-syntax on
+if !exists('g:syntax_on')
+  syntax on
+  let g:syntax_on = 1
+end
 
 set nocompatible
 
@@ -256,6 +259,12 @@ noremap <C-j> <C-w>j
 noremap <C-k> <C-w>k
 noremap <C-l> <C-w>l
 
+" window resize (simply)
+nnoremap - <C-W>-
+nnoremap + <C-W>+
+nnoremap < <C-w><
+nnoremap > <C-w>>
+
 " zoom and unzoom (like tmux) -- by 'vim-maximizer'
 nnoremap <C-w>z :MaximizerToggle<CR>
 let g:maximizer_set_default_mapping = 0         " do not map <F3>
@@ -277,12 +286,11 @@ if has('nvim')
   autocmd TermOpen * startinsert
 
   " terminal in a new tab or vsplit buffer
-  command! -nargs=* T :Term <args>
-  command! -nargs=* Term :tabnew | :term <args>
-  command! -nargs=* STerm :split | :term <args>
-  command! -nargs=* VTerm :split | :term <args>
-  command! -nargs=* TermSplit :split | :term <args>
-  command! -nargs=* TermVSplit :vsplit | :term <args>
+  command! -nargs=* -complete=shellcmd Term         :tabnew | :term <args>
+  command! -nargs=* -complete=shellcmd STerm        :split  | :term <args>
+  command! -nargs=* -complete=shellcmd VTerm        :split  | :term <args>
+  command! -nargs=* -complete=shellcmd TermSplit    :split  | :term <args>
+  command! -nargs=* -complete=shellcmd TermVSplit   :vsplit | :term <args>
 
   " Mapping for <c-hjkl> in terminal mode
   " <c-h> might not work: see https://github.com/neovim/neovim/issues/2048
@@ -408,6 +416,7 @@ function! QuickfixToggle()
 endfunction
 map  <silent> <F6> :call QuickfixToggle()<CR>
 imap <silent> <F6> <ESC>:call QuickfixToggle()<CR>G:wincmd w<CR>a
+nmap  <silent> <C-Q> :call QuickfixToggle()<CR>
 
 " <leader>L: show/close location list window
 function! LocListToggle()
@@ -453,7 +462,8 @@ endif
 
 " <leader>cd : switch to the directory of the current buffer
 function! CD_to_file()
-  cd %:p:h
+  silent cd %:p:h
+  :pwd
 
   " if NERDTree is open, chdir NERDTree as well
   if exists('g:NERDTree') && g:NERDTree.IsOpen()
@@ -561,7 +571,9 @@ xnoremap <leader>! "gy:call <SID>goog(@g, 1)<cr>gv
 " color settings
 " @see http://www.calmar.ws/vim/256-xterm-24bit-rgb-color-chart.html
 set t_Co=256                 " use 256 color
-set background=dark
+if &background != 'dark'
+  set background=dark
+endif
 
 if &term =~ '256color'
   " Disable Background Color Erase (BCE) so that color schemes
@@ -571,7 +583,7 @@ endif
 
 " 24-bit true color: neovim 0.1.5+ / vim 7.4.1799+
 " enable ONLY if TERM is set valid and it is NOT under mosh
-function! s:is_mosh()
+function! IsMosh()
   let output = system('is_mosh -v')
   if v:shell_error
     return 0
@@ -579,23 +591,36 @@ function! s:is_mosh()
   return !empty(l:output)
 endfunction
 
-function! s:auto_termguicolors()
+function! s:auto_termguicolors(...)
   if !(has('termguicolors'))
     return
   endif
 
-  if (&term == 'xterm-256color' || &term == 'nvim') && !s:is_mosh()
+  if (&term == 'xterm-256color' || &term == 'nvim') && !IsMosh()
     set termguicolors
   else
     set notermguicolors
   endif
 endfunction
-call s:auto_termguicolors()
+if has('termguicolors')
+  " by default, enable 24-bit color, but lazily disable if under mosh
+  if !&termguicolors
+    set termguicolors
+  endif
 
+  if exists('*timer_start')
+    call timer_start(0, function('s:auto_termguicolors'))
+  else
+    call s:auto_termguicolors()
+  endif
+endif
 
 " apply base theme
 silent! colorscheme xoria256
 silent! colorscheme vividchalk
+if !exists('g:colors_name')
+  silent! colorscheme xoria256
+endif
 
 " airline theme: status line and tab line
 if has('termguicolors') && &termguicolors
@@ -808,6 +833,23 @@ endfunction
 command! -range EmojiReplace <line1>,<line2>call s:replace_emojis()
 xnoremap <leader>emoji :Emoji<CR>
 
+
+" :Emoji --- emoji search with fzf
+" insert-completion <c-x><c-e>   (fzf-complete-emoji)
+command! -nargs=* Emoji          call fzf#run(Fzf_emoji_opts(<q-args>))
+imap <expr> <silent> <C-x><C-e>  fzf#vim#complete(Fzf_emoji_opts(''))
+function! Fzf_emoji_opts(query)
+  let opts = {}
+  let opts.source = map(sort(emoji#list()), 'printf("%-10s \t %s", emoji#for(v:val), v:val)')
+  let opts.options = ['--delimiter', '\t', '--nth', '-1', '--no-multi']
+  if !empty(a:query)
+    let opts.options += ['--query', a:query]
+  endif
+  let opts.reducer = { lines -> split(lines[0])[0] }                 " for insert-complete mode
+  let opts.sink = { line -> execute('normal! a' . split(line)[0]) }  " for normal-command mode
+  return fzf#wrap(opts)
+endfunction
+
 " ---------------------------------------------------------------- }}}
 " vim-asterisk (enhanced *) {{{
 
@@ -973,7 +1015,7 @@ let g:fzf_layout = { 'down' : '~33%' }
 if has('nvim-0.4')
   " On floating windows, we use reverse layout, i.e. prompt is at the above.
   let $FZF_DEFAULT_OPTS = $FZF_DEFAULT_OPTS . ' --layout=reverse  --margin=1,2'
-  let g:fzf_layout = { 'window': 'call FloatingFZF()'}
+  let g:fzf_layout = { 'window': 'call FloatingFZF()' }
 
   function! FloatingFZF()
     let buf = nvim_create_buf(v:false, v:true)
@@ -1025,14 +1067,19 @@ endif
 
 " :GFiles (with preview), :GFiles? (git diff + preview)
 " Pressing '?' when FZF is shown would toggle preview
-command! -bang -nargs=? GFiles     call fzf#vim#gitfiles(<q-args>, <q-args> != '?' ? (
-      \ <bang>0 ? fzf#vim#with_preview('up:90%')
-      \         : fzf#vim#with_preview('right:50%', '?')
+command! -bang -nargs=? GFiles     call s:fzf_gfiles_helpmsg(<q-args>) | call fzf#vim#gitfiles(<q-args>,
+      \ <q-args> != '?' ? (
+      \ <bang>0 ? fzf#vim#with_preview(s:fzf_gfiles_spec, 'up:90%')
+      \         : fzf#vim#with_preview(s:fzf_gfiles_spec, 'right:50%', 'CTRL-/')
       \) : <bang>0
       \)
+let s:fzf_gfiles_spec = {'options': []}
+function! s:fzf_gfiles_helpmsg(args)
+  if a:args == '?' | return | endif
+  echon ':GFiles    ' | echohl Special | echon 'Press CTRL-/ for toggle preview.' | echohl NONE
+endfunction
 " }}}
 
-" :F is a shortcut for :GFiles or :FZF
 function! s:get_git_dir()
   let curr = expand('%:p')
   if empty(curr)   " empty buffer, etc.: fall back to current dir
@@ -1043,10 +1090,17 @@ function! s:get_git_dir()
   catch /E117/  " Unknown function: maybe incompatible fugitive
     return fugitive#extract_git_dir(curr)
   endtry
-
 endfunction
-function! s:fzf_smart()
-  " if a FZF tree/explorer is shown, invoke :Files (with preview) rather than :GFiles
+
+function! s:fzf_smart(qargs) abort
+  " If args are given (e.g. :F <args>), run :Files <args>
+  if !empty(a:qargs)
+    execute ':Files ' . a:qargs
+    return
+  endif
+
+  " No argument -- Automatic dispatching:
+  " (1) If a FZF tree/explorer is shown, invoke :Files (with preview) rather than :GFiles
   if &filetype == 'nerdtree'
     let l:target_path = b:NERDTree.root.path._str()
     " if the current buffer is the pinned on in the tab (vim-nerdtree-tabs),
@@ -1056,19 +1110,34 @@ function! s:fzf_smart()
     endif
     call fzf#vim#files(l:target_path, fzf#vim#with_preview()) | return
   endif
-  " in a git repo, invoke :GFiles (plus untracked files)
-  if ! empty(s:get_git_dir()) | GFiles -c -o --exclude-standard
-  " not in git repo, invoke :FZF by fallback
-  else | FZF
+  " (2) in a git repo, invoke :GFiles (plus untracked files)
+  let l:git_dir = s:get_git_dir()
+  if ! empty(l:git_dir)
+    let l:old_cwd = getcwd()
+    execute ':cd ' . l:git_dir . '/..'
+    GFiles -c -o --exclude-standard
+    execute ':cd ' . l:old_cwd
+  " (3) not in git repo, invoke :Files <args> by fallback
+  else
+    execute ':Files ' . a:qargs
+    return
   endif
 endfunction
-command! -nargs=0 F call s:fzf_smart()
+
+" :F is a shortcut for :GFiles or :FZF
+command! -complete=dir -nargs=* F call s:fzf_smart(<q-args>)
 
 " Invoke F (FZF) Using Ctrl-P
 nmap <C-P> :F<CR>
 
-" insert mode completion
-imap <c-x><c-k>   <plug>(fzf-complete-word)
+" insert mode completion using fzf  (:h fzf-vim-mappings)
+"   --> ~/.vim/plugged/fzf.vim/autoload/fzf/vim/complete.vim
+" (similar to vim's insert mode completions, :h ins-completion)
+imap <C-x><C-k>   <plug>(fzf-complete-word)
+imap <C-x><C-f>   <plug>(fzf-complete-path)
+imap <C-x><C-l>   <plug>(fzf-complete-line)
+
+" <C-x><C-e>   (fzf-complete-emoji, vim-emoji)
 
 
 " custom commands using fzf
@@ -1122,92 +1191,31 @@ function! s:rg_star_to_cword(args) abort
   endif
 endfunction
 
-function! s:fzfrg_bind_keymappings(query, rg_options) abort
-  " additional keymappings on the fzf window (e.g. move to quickfix)
-  " Args:
-  " - query: the rg pattern string (will be escaped inside)
-  " - rg_options: additional flags passed to rg (passed to shell as-is)
-  let t:FzfRg_last_query = a:query
-  let t:FzfRg_last_options = a:rg_options
-  if !empty(t:FzfRg_last_query)
-    " CTRL-Q (unless query is empty) -> call rg again into the quickfix
-    tnoremap <silent> <buffer> <C-q>    <C-\><C-n>:call timer_start(0, {
-          \ -> ag#Ag('grep!', shellescape(t:FzfRg_last_query) . " " . t:FzfRg_last_options)
-          \ })<CR>:q<CR>
-  endif
-endfunction
 " }}}
 
-" :Rg -- Ripgrep + fzf (grep then fuzzy-filter)
-command! -bang -nargs=* Rg call FzfRg(<q-args>, <bang>0)
-nnoremap <leader>rg   :Rg<space>
-xnoremap <leader>rg   "gy:Rg <C-R>g<CR>
+" fzf-ripgrep.vim
+" [@migrated] :Rg, :RgFzf are defined in ~/.vim/plugged/fzf-ripgrep.vim/plugin/fzf_ripgrep.vim
+"
+" :RgFzf, :RF, :RGF -- Ripgrep + fzf (grep then fuzzy-filter)
+command! -nargs=*     RF      :RgFzf <args>
+command! -nargs=*     RGF     :RgFzf <args>
 
-function! FzfRg(args, fullscreen) abort
-  let fzf_opts_prompt = ['--prompt', printf('Rg'.'%s> ', empty(a:args) ? '' : (' ('.a:args.')'))]
-  let fzf_opts_header = ['--ansi', '--header',
-        \ ':: Press '.s:magenta('?', 'Special').' to toggle preview, '
-        \ . (!empty(a:args) ? s:magenta('CTRL-Q', 'Special').' to switch to quickfix' : '')
-        \ .nr2char(10). '   To refresh ripgrep results rather than fuzzy-filtering, try '.s:magenta(':RG', 'Special').' instead.'
-        \ ]
-  let fzf_opts_contentsonly = ['--delimiter', ':', '--nth', '4..']   " fzf.vim#346
-  let fzf_opts = fzf_opts_prompt + fzf_opts_header + fzf_opts_contentsonly
-  call fzf#vim#grep(
-        \ 'rg -i --column --line-number --no-heading --color=always '.shellescape(s:rg_star_to_cword(a:args)), 1,
-        \ a:fullscreen ? fzf#vim#with_preview({'options': fzf_opts}, 'up:60%')
-        \              : fzf#vim#with_preview({'options': fzf_opts}, 'right:50%', '?'),
-        \ a:fullscreen)
-  call s:fzfrg_bind_keymappings(s:rg_star_to_cword(a:args), '')
-endfunction
+" :Rg, :Grep -- Ripgrep + fzf (but refreshs ripgrep result upon updating query)
+command! -nargs=*     Grep    :Rg <args>
 
-" :RG, :Grep -- Ripgrep + fzf (but refreshs ripgrep result upon updating query)
-command! -nargs=* -bang RG      call FzfRG(<q-args>, <bang>0)
-command! -nargs=*       Grep    :RG <args>
-" fzf 0.19+ "reload' magic: https://github.com/junegunn/fzf/issues/1750
-function! FzfRG(query, fullscreen)
-  let command_fmt = 'rg --column --line-number --no-heading --color=always --smart-case %s || true'
-  let initial_command = printf(command_fmt, shellescape(a:query))
-  let reload_command = printf(command_fmt, '{q}')
-  let fzf_opts = [
-        \ '--phony', '--query', a:query, '--bind', 'change:reload:'.reload_command,
-        \ '--prompt', 'RG> ']
-  call fzf#vim#grep(initial_command, 1, fzf#vim#with_preview({'options': fzf_opts}), a:fullscreen)
-endfunction
+" rg-this (current word or visual selection)
+nnoremap <leader>rg   :<c-u>RgF*<CR>
+xnoremap <leader>rg   "gy:RgF <C-R>g<CR>
 
-
-" :Def, Rgdef -- Easily find definition/declaration (requires ripgrep)
+" :Def, :RgDef -- Easily find definition/declaration (requires ripgrep)
 " e.g. :Def class, :Def def, :Def myfunc, :Def class MyClass
-command! -bang -nargs=* Rgdef   call FzfRgDef(<q-args>, <bang>0)
-command! -bang -nargs=* Def     call FzfRgDef(<q-args>, <bang>0)
-command! -bang -nargs=* D       call FzfRgDef(<q-args>, <bang>0)
-nnoremap <leader>def  :<C-U>Def<CR>
+command! -bang -nargs=* Def     :RgDef <args>
+command! -bang -nargs=* D       :RgDef <args>
 
-function! FzfRgDef(args, fullscreen) abort
-  " TODO: currently, only python is supported.
-  let l:query = s:rg_star_to_cword(a:args)
-  let l:rgdef_type = '--type "py"'
-  let l:rgdef_prefix = '^\s*(def|class)'
-  let l:rgdef_pattern = l:rgdef_prefix.' \w*'.l:query.'\w*'
+" def-this (current cursor or visual selection)
+nnoremap <leader>def  :<C-U>Def*<CR>
+xnoremap <leader>def  "gy:Def <C-R>g<CR>
 
-  " if the query itself starts with prefix patterns, let itself be the regex pattern
-  if a:args =~ ('\v'.l:rgdef_prefix.'($|\s+)')
-    let l:rgdef_pattern = '^\s*'.a:args
-  endif
-
-  let fzf_opts_prompt = ['--prompt', printf('RgDef'.'%s> ', empty(a:args) ? '' : (' ('.a:args.')'))]
-  let fzf_opts_header = ['--ansi', '--header',
-        \ s:yellow('(Tip)').' Press '.s:magenta('?', 'Special').' to toggle preview, '
-        \ . s:magenta('CTRL-Q', 'Special').' to switch to quickfix'
-        \ ]
-  let fzf_opts_contentsonly = ['--delimiter', ':', '--nth', '4..']   " fzf.vim#346
-  let fzf_opts = fzf_opts_prompt + fzf_opts_header + fzf_opts_contentsonly
-  call fzf#vim#grep(
-        \ 'rg -i --column --line-number --no-heading --color=always '.l:rgdef_type.' '.shellescape(l:rgdef_pattern), 1,
-        \ a:fullscreen ? fzf#vim#with_preview({'options': fzf_opts}, 'up:60%')
-        \              : fzf#vim#with_preview({'options': fzf_opts}, 'right:50%', '?'),
-        \ a:fullscreen)
-  call s:fzfrg_bind_keymappings(l:rgdef_pattern, l:rgdef_type)
-endfunction
 
 
 " FZF-based finder commands
@@ -1304,8 +1312,11 @@ let g:floaterm_background = '#1a2a31'
 hi FloatermNF       guibg=#1a2a31
 hi FloatermBorderNF guibg=#1a2a31 guifg=white
 
-command! -nargs=? -complete=shellcmd  FT                   call FloatermToggleOrNew(<f-args>)
+command! -nargs=? -complete=shellcmd  T                    :FloatermToggleOrNew <args>
+command! -nargs=? -complete=shellcmd  FT                   :FloatermToggleOrNew <args>
 command! -nargs=? -complete=shellcmd  FloatermToggleOrNew  call FloatermToggleOrNew(<f-args>)
+nnoremap <leader>tt  :FloatermToggle<CR>
+"
 function! FloatermToggleOrNew(...) abort
   let ft_bufnr = floaterm#buflist#find_curr()
   if ft_bufnr == -1
@@ -1469,6 +1480,9 @@ let g:pandoc#syntax#conceal#use = 0
 
 " disable spell check
 let g:pandoc#spell#enabled = 0
+
+" Do not map <leader>{nr, rg, rb} by default
+let g:pandoc#keyboard#use_default_mappings = 0
 
 " ---------------------------------------------------------------- }}}
 " vim-javacomplete2 {{{
