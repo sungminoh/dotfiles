@@ -37,10 +37,10 @@ alias vi='vim'
 alias v='vim'
 
 # Just open ~/.vimrc, ~/.zshrc, etc.
-alias vimrc='vim +Vimrc'
+alias vimrc='vim +Vimrc +tabclose\ 1'
 #alias vimrc='vim +cd\ ~/.vim -O ~/.vim/vimrc ~/.vim/plugins.vim'
 
-alias zshrc='vim +cd\ ~/.zsh -O ~/.zsh/zshrc ~/.zpreztorc'
+alias zshrc='vim +cd\ ~/.zsh -O ~/.zsh/zshrc ~/.zsh/zsh.d/alias.zsh'
 
 # Tmux ========================================= {{{
 
@@ -151,6 +151,8 @@ alias nt='NOSE_REDNOSE=1 nosetests -v'
 
 # unit test: in verbose mode
 alias pytest='pytest -vv'
+alias pytest-pudb='pytest -s --pudb'
+alias pytest-html='pytest --self-contained-html --html'
 alias green='green -vv'
 
 # }}}

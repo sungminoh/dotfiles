@@ -33,7 +33,10 @@ autocmd VimEnter *
 
 filetype plugin on
 filetype indent on
-syntax on
+if !exists('g:syntax_on')
+  syntax on
+  let g:syntax_on = 1
+end
 
 set nocompatible
 
@@ -157,6 +160,11 @@ set completeopt=menuone,preview,longest     " show preview and pop-up menu
 set noswapfile
 set nobackup
 
+" dictionary
+if filereadable('/usr/share/dict/words')
+  set dictionary+=/usr/share/dict/words
+endif
+
 " miscellanious
 set visualbell
 set history=1000
@@ -227,6 +235,7 @@ let mapleader=','           " comma is the <Leader> key.
 let maplocalleader=','      " comma : <LocalLeader>
 
 inoremap <silent> <C-k> <ESC>:update<CR>
+nnoremap <silent> ,e :<C-u>e<CR>zR
 
 " navigation key mapping
 map <silent> k gk
@@ -255,6 +264,12 @@ noremap <C-h> <C-w>h
 noremap <C-j> <C-w>j
 noremap <C-k> <C-w>k
 noremap <C-l> <C-w>l
+
+" window resize (simply)
+nnoremap - <C-W>-
+nnoremap + <C-W>+
+nnoremap < <C-w><
+nnoremap > <C-w>>
 
 " zoom and unzoom (like tmux) -- by 'vim-maximizer'
 nnoremap <C-w>z :MaximizerToggle<CR>
@@ -407,6 +422,7 @@ function! QuickfixToggle()
 endfunction
 map  <silent> <F6> :call QuickfixToggle()<CR>
 imap <silent> <F6> <ESC>:call QuickfixToggle()<CR>G:wincmd w<CR>a
+nmap  <silent> <C-Q> :call QuickfixToggle()<CR>
 
 " <leader>L: show/close location list window
 function! LocListToggle()
@@ -505,19 +521,33 @@ nnoremap <leader>df :diffthis<CR>
 " Surround a word with quotes, single quotes, parens, brackets, braces, etc.
 "   requires and powered by the plugin surround.vim :-)
 " (Note) for visual blocks, use S command from surround.vim
-map  <leader>s" ysiw"
-map  <leader>s' ysiw'
-map  <leader>s` ysiw`
-map  <leader>s* ysiw*l
-map  <leader>s_ ysiw_l
-map  <leader>s~ ysiw~l
-map  <leader>s$ ysiw$
-map  <leader>s( ysiw(
-map  <leader>s) ysiw)
-map  <leader>s[ ysiw[
-map  <leader>s] ysiw]
-map  <leader>s{ ysiw{
-map  <leader>s} ysiw}
+nmap  <leader>s" ysiw"
+nmap  <leader>s' ysiw'
+nmap  <leader>s` ysiw`
+nmap  <leader>s* ysiw*l
+nmap  <leader>s_ ysiw_l
+nmap  <leader>s~ ysiw~l
+nmap  <leader>s$ ysiw$
+nmap  <leader>s( ysiw(
+nmap  <leader>s) ysiw)
+nmap  <leader>s[ ysiw[
+nmap  <leader>s] ysiw]
+nmap  <leader>s{ ysiw{
+nmap  <leader>s} ysiw}
+
+vmap  <leader>s" S"
+vmap  <leader>s' S'
+vmap  <leader>s` S`
+vmap  <leader>s* S*
+vmap  <leader>s_ S_
+vmap  <leader>s~ S~
+vmap  <leader>s$ S$
+vmap  <leader>s( S(
+vmap  <leader>s) S)
+vmap  <leader>s[ S[
+vmap  <leader>s] S]
+vmap  <leader>s{ S{
+vmap  <leader>s} S}
 
 " Zoom Tmux
 noremap <silent> <leader>z :silent exec "!tmux resize-pane -Z"<CR>
@@ -561,7 +591,9 @@ xnoremap <leader>! "gy:call <SID>goog(@g, 1)<cr>gv
 " color settings
 " @see http://www.calmar.ws/vim/256-xterm-24bit-rgb-color-chart.html
 set t_Co=256                 " use 256 color
-set background=dark
+if &background != 'dark'
+  set background=dark
+endif
 
 if &term =~ '256color'
   " Disable Background Color Erase (BCE) so that color schemes
@@ -571,7 +603,7 @@ endif
 
 " 24-bit true color: neovim 0.1.5+ / vim 7.4.1799+
 " enable ONLY if TERM is set valid and it is NOT under mosh
-function! s:is_mosh()
+function! IsMosh()
   let output = system('is_mosh -v')
   if v:shell_error
     return 0
@@ -579,23 +611,36 @@ function! s:is_mosh()
   return !empty(l:output)
 endfunction
 
-function! s:auto_termguicolors()
+function! s:auto_termguicolors(...)
   if !(has('termguicolors'))
     return
   endif
 
-  if (&term == 'xterm-256color' || &term == 'nvim') && !s:is_mosh()
+  if index(['xterm-256color', 'nvim', 'xterm-kitty', 'builtin_xterm'], &term) >= 0 && !IsMosh()
     set termguicolors
   else
     set notermguicolors
+    silent! set pumblend=0  " disable blending
   endif
 endfunction
-call s:auto_termguicolors()
+if has('termguicolors')
+  " by default, enable 24-bit color, but lazily disable if under mosh
+  if !&termguicolors
+    set termguicolors
+  endif
 
+  if exists('*timer_start')
+    call timer_start(0, function('s:auto_termguicolors'))
+  else
+    call s:auto_termguicolors()
+  endif
+endif
 
 " apply base theme
-silent! colorscheme xoria256
-silent! colorscheme vividchalk
+if !exists('g:colors_name')
+  silent! colorscheme xoria256
+  silent! colorscheme vividchalk
+endif
 
 " airline theme: status line and tab line
 if has('termguicolors') && &termguicolors
@@ -619,7 +664,7 @@ highlight GitGutterChange guifg=#bbbb00 guibg=#121212 ctermfg=3 ctermbg=233
 highlight GitGutterDelete guifg=#ff2222 guibg=#121212 ctermfg=1 ctermbg=233
 
 " some primitive colors customized on top of xoria256
-highlight Normal        ctermfg=255 guifg=white
+highlight Normal        ctermfg=255 guifg=white    ctermbg=NONE guibg=NONE
 highlight Comment       ctermfg=035 guifg=#38B04A
 highlight Constant      ctermfg=204 guifg=#ff5f87
 highlight PreProc       ctermfg=219 guifg=#ffafff
@@ -689,7 +734,8 @@ highlight Pmenu             ctermfg=black guifg=black ctermbg=yellow guibg=#ffec
 highlight PmenuSel          ctermfg=red guifg=red ctermbg=white guibg=white gui=bold
 
 " neovim 0.4.0+ : semi-transparent popup menu
-if has('nvim') && has('termguicolors')
+" seealso: s:auto_termguicolors
+if has('nvim') && has('termguicolors') && (&termguicolors)
   silent! set pumblend=20
 endif
 
@@ -736,8 +782,10 @@ if has('gui_running')
 
   elseif has('unix') && s:uname ==? 'Darwin'
     " font setting for Mac OS X (Darwin)
-    set guifont=Monaco\ for\ Powerline:h12
-    set guifontwide=Apple\ SD\ Gothic\ Neo\ UltraLight:h12
+    if !has('gui_vimr')
+      set guifont=Monaco\ for\ Powerline:h12
+      set guifontwide=Apple\ SD\ Gothic\ Neo\ UltraLight:h12
+    endif
   endif
 
 endif
@@ -807,6 +855,23 @@ endfunction
 
 command! -range EmojiReplace <line1>,<line2>call s:replace_emojis()
 xnoremap <leader>emoji :Emoji<CR>
+
+
+" :Emoji --- emoji search with fzf
+" insert-completion <c-x><c-e>   (fzf-complete-emoji)
+command! -nargs=* Emoji          call fzf#run(Fzf_emoji_opts(<q-args>))
+imap <expr> <silent> <C-x><C-e>  fzf#vim#complete(Fzf_emoji_opts(''))
+function! Fzf_emoji_opts(query)
+  let opts = {}
+  let opts.source = map(sort(emoji#list()), 'printf("%-10s \t %s", emoji#for(v:val), v:val)')
+  let opts.options = ['--delimiter', '\t', '--nth', '-1', '--no-multi']
+  if !empty(a:query)
+    let opts.options += ['--query', a:query]
+  endif
+  let opts.reducer = { lines -> split(lines[0])[0] }                 " for insert-complete mode
+  let opts.sink = { line -> execute('normal! a' . split(line)[0]) }  " for normal-command mode
+  return fzf#wrap(opts)
+endfunction
 
 " ---------------------------------------------------------------- }}}
 " vim-asterisk (enhanced *) {{{
@@ -898,8 +963,40 @@ let g:EditorConfig_core_mode = 'vim_core'
 " use airline, with powerline-ish theme
 let g:airline_powerline_fonts=1
 
-" [section customization] (:h airline-sections) {{{
+" [section customization] (:h airline-sections)
+" See ~/.vim/plugged/vim-airline/autoload/airline/init.vim -> airline#init#sections() to see defaults {{{
 " -----------------------
+
+autocmd User AirlineAfterInit call AirlineSectionInit()
+function! AirlineSectionInit()
+  " section c: -coc_status
+  let g:airline_section_c = airline#section#create([
+        \ '%<', 'file', g:airline_symbols.space, 'readonly',
+        \ ])
+
+  " section y: +coc_status, -filetype
+  " Customize how coc_status should work (after airline#extensions#coc#init is called)
+  if exists(':CocCommand') | call airline#parts#define_function('coc_status', 'AirlineCocStatusSimple') | endif
+  let g:airline_section_x = airline#section#create_right([
+        \ 'coc_status',
+        \ 'bookmark', 'tagbar', 'vista', 'gutentags', 'grepper',
+        \ ])               " excludes filetype
+endfunction
+
+" airline-coc customization
+function! AirlineCocStatusSimple() abort
+  " @see airline#extensions#coc#get_status for the original behavior
+  let l:status = get(g:, 'coc_status', '')
+
+  if &filetype == 'python'
+    " Strip "Python x.y.z. 64-bit ..." which I don't want to see
+    " trim() : nvim 0.3.2+ but we can safely assume it exists if coc.nvim does.
+    let l:status = ' ' . trim(substitute(l:status, "Python.*-bit\s*", "", ""))
+  endif
+
+  return airline#util#shorten(l:status, 160, 33)
+endfunction
+
 
 " section y (ffenc): skip if utf-8[unix]
 let g:airline#parts#ffenc#skip_expected_string = 'utf-8[unix]'
@@ -973,7 +1070,7 @@ let g:fzf_layout = { 'down' : '~33%' }
 if has('nvim-0.4')
   " On floating windows, we use reverse layout, i.e. prompt is at the above.
   let $FZF_DEFAULT_OPTS = $FZF_DEFAULT_OPTS . ' --layout=reverse  --margin=1,2'
-  let g:fzf_layout = { 'window': 'call FloatingFZF()'}
+  let g:fzf_layout = { 'window': 'call FloatingFZF()' }
 
   function! FloatingFZF()
     let buf = nvim_create_buf(v:false, v:true)
@@ -1025,14 +1122,19 @@ endif
 
 " :GFiles (with preview), :GFiles? (git diff + preview)
 " Pressing '?' when FZF is shown would toggle preview
-command! -bang -nargs=? GFiles     call fzf#vim#gitfiles(<q-args>, <q-args> != '?' ? (
-      \ <bang>0 ? fzf#vim#with_preview('up:90%')
-      \         : fzf#vim#with_preview('right:50%', '?')
+command! -bang -nargs=? GFiles     call s:fzf_gfiles_helpmsg(<q-args>) | call fzf#vim#gitfiles(<q-args>,
+      \ <q-args> != '?' ? (
+      \ <bang>0 ? fzf#vim#with_preview(s:fzf_gfiles_spec, 'up:90%')
+      \         : fzf#vim#with_preview(s:fzf_gfiles_spec, 'right:50%', 'CTRL-/')
       \) : <bang>0
       \)
+let s:fzf_gfiles_spec = {'options': []}
+function! s:fzf_gfiles_helpmsg(args)
+  if a:args == '?' | return | endif
+  echon ':GFiles    ' | echohl Special | echon 'Press CTRL-/ for toggle preview.' | echohl NONE
+endfunction
 " }}}
 
-" :F is a shortcut for :GFiles or :FZF
 function! s:get_git_dir()
   let curr = expand('%:p')
   if empty(curr)   " empty buffer, etc.: fall back to current dir
@@ -1043,10 +1145,17 @@ function! s:get_git_dir()
   catch /E117/  " Unknown function: maybe incompatible fugitive
     return fugitive#extract_git_dir(curr)
   endtry
-
 endfunction
-function! s:fzf_smart()
-  " if a FZF tree/explorer is shown, invoke :Files (with preview) rather than :GFiles
+
+function! s:fzf_smart(qargs) abort
+  " If args are given (e.g. :F <args>), run :Files <args>
+  if !empty(a:qargs)
+    execute ':Files ' . a:qargs
+    return
+  endif
+
+  " No argument -- Automatic dispatching:
+  " (1) If a FZF tree/explorer is shown, invoke :Files (with preview) rather than :GFiles
   if &filetype == 'nerdtree'
     let l:target_path = b:NERDTree.root.path._str()
     " if the current buffer is the pinned on in the tab (vim-nerdtree-tabs),
@@ -1055,20 +1164,57 @@ function! s:fzf_smart()
       wincmd w   " we need to move the focus outside nerdtree
     endif
     call fzf#vim#files(l:target_path, fzf#vim#with_preview()) | return
+  elseif &filetype == 'coc-explorer'
+    wincmd w
   endif
-  " in a git repo, invoke :GFiles (plus untracked files)
-  if ! empty(s:get_git_dir()) | GFiles -c -o --exclude-standard
-  " not in git repo, invoke :FZF by fallback
-  else | FZF
+  " (2) in a git repo, invoke :GFiles (plus untracked files)
+  let l:git_dir = s:get_git_dir()
+  if ! empty(l:git_dir)
+    let l:old_cwd = getcwd()
+    execute ':cd ' . l:git_dir . '/..'
+    GFiles -c -o --exclude-standard
+    execute ':cd ' . l:old_cwd
+  " (3) not in git repo, invoke :Files <args> by fallback
+  else
+    execute ':Files ' . a:qargs
+    return
   endif
 endfunction
-command! -nargs=0 F call s:fzf_smart()
+
+" :F is a shortcut for :GFiles or :FZF
+command! -complete=dir -nargs=* F call s:fzf_smart(<q-args>)
 
 " Invoke F (FZF) Using Ctrl-P
 nmap <C-P> :F<CR>
 
-" insert mode completion
-imap <c-x><c-k>   <plug>(fzf-complete-word)
+" insert mode completion using fzf  (:h fzf-vim-mappings)
+"   --> ~/.vim/plugged/fzf.vim/autoload/fzf/vim/complete.vim
+" (similar to vim's insert mode completions, :h ins-completion)
+imap <C-x><C-k>   <plug>(fzf-complete-word)
+imap <C-x><C-f>   <plug>(fzf-complete-path)
+imap <C-x><C-l>   <plug>(fzf-complete-line-allfiles)
+"imap <C-x><C-e>   (fzf-complete-emoji, vim-emoji)
+
+" More advanced combinations on insert-mode line completion (CTRL-X CTRL-L)
+imap <C-x><C-l><c-l>   <plug>(fzf-complete-line-allfiles)
+imap <C-x><C-l><c-b>   <plug>(fzf-complete-line-buffers)
+imap <C-x><C-l><c-.>   <plug>(fzf-complete-line-allfiles)
+imap <C-x><C-l><c-i>   <plug>(fzf-complete-line-import)
+imap        <plug>(fzf-complete-line-buffers)    <plug>(fzf-complete-line)
+imap <expr> <plug>(fzf-complete-line-allfiles)   fzf#vim#complete(Fzf_completeline_rg('', ''))
+imap <expr> <plug>(fzf-complete-line-import)     fzf#vim#complete(Fzf_completeline_rg('import', 'py'))
+
+function! Fzf_completeline_rg(pattern, rg_filetype)
+  " TODO detect git directory for the current file and use it as search path
+  let l:pattern = empty(a:pattern) ? '""' : shellescape('\b' . a:pattern. '\b')
+  let l:filetype = empty(a:rg_filetype) ? ' ' : printf('-t %s ', shellescape(a:rg_filetype))
+
+  return fzf#wrap({
+        \ 'source': 'rg --column --line-number --no-heading --color=always ' . l:filetype . ' ' . l:pattern,
+        \ 'options': ['--delimiter', ':', '--ansi', '--nth', '3..', '--no-multi'],
+        \ 'reducer': { lines -> trim(join(split(lines[0], ':')[3:], ':')) },
+        \ })
+endfunction
 
 
 " custom commands using fzf
@@ -1377,7 +1523,7 @@ nmap ga <Plug>(EasyAlign)
 let g:indentLine_conceallevel = 1
 
 " conceal values might not work well for tex files (hides some characters)
-let g:indentLine_fileTypeExclude = ['tex', 'markdown']
+let g:indentLine_fileTypeExclude = ['tex', 'markdown', 'pandoc', 'coc-explorer']
 
 " command alias
 command! -nargs=0 ToggleIndentLines   :IndentLinesToggle
@@ -1403,17 +1549,21 @@ augroup END
 " ---------------------------------------------------------------- }}}
 " vim-pandoc {{{
 
-" disable automatic folding
-let g:pandoc#modules#disabled = ['folding']
+if has_key(g:plugs, 'vim-pandoc')
 
-" disable conceals
-let g:pandoc#syntax#conceal#use = 0
+  " disable automatic folding
+  let g:pandoc#modules#disabled = ['folding']
 
-" disable spell check
-let g:pandoc#spell#enabled = 0
+  " disable conceals
+  let g:pandoc#syntax#conceal#use = 0
 
-" Do not map <leader>{nr, rg, rb} by default
-let g:pandoc#keyboard#use_default_mappings = 0
+  " disable spell check
+  let g:pandoc#spell#enabled = 0
+
+  " Do not map <leader>{nr, rg, rb} by default
+  let g:pandoc#keyboard#use_default_mappings = 0
+
+endif
 
 " ---------------------------------------------------------------- }}}
 " vim-javacomplete2 {{{
@@ -1655,7 +1805,10 @@ if has('mac')
   endif
 endif
 
-nnoremap <leader>V :VimtexTocOpen<CR>
+augroup VimtexMappings
+  autocmd!
+  autocmd FileType tex nnoremap <buffer> <leader>V :VimtexTocOpen<CR>
+augroup END
 
 " ---------------------------------------------------------------- }}}
 " fugitive {{{
@@ -1868,6 +2021,10 @@ if has_key(g:plugs, 'coc.nvim')
       let s:coc_cmdline_timer = timer_start(g:coc_suppress_status_delay, {-> s:coc_suppress_status_switch(0)})
     endif
   endfunction
+
+  " coc-explorer (see coc-settings.json)
+  command! -nargs=0 CocExplorer  :CocCommand explorer
+  nmap <leader>E  :CocExplorer<CR>
 
 endif
 
