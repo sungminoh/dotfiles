@@ -266,10 +266,13 @@ noremap <C-k> <C-w>k
 noremap <C-l> <C-w>l
 
 " window resize (simply)
-nnoremap - <C-W>-
+nnoremap _ <C-W>-
 nnoremap + <C-W>+
-nnoremap < <C-w><
-nnoremap > <C-w>>
+nnoremap <S-Right> <C-W>>
+nnoremap <S-Left>  <C-W><
+nnoremap <S-Down>  <C-W>-
+nnoremap <S-Up>    <C-W>+
+
 
 " zoom and unzoom (like tmux) -- by 'vim-maximizer'
 nnoremap <C-w>z :MaximizerToggle<CR>
@@ -377,6 +380,7 @@ endif
 
 
 " smartly dispatch according to filetype
+command! -nargs=0 -bang RunMake call s:run_make("<bang>")
 function! s:run_make(bang)
     let l:silent_filetypes = ['tex', 'pandoc', 'lilypond']
     " (1) bang given, force background
@@ -385,9 +389,9 @@ function! s:run_make(bang)
     elseif index(l:silent_filetypes, &filetype) >= 0 | TheMake!
     " (3) otherwise, make with foreground shown
     else | TheMake
-    end
+    endif
+    echo printf(':RunMake  (%s)', &makeprg)
 endfunction
-command! -nargs=0 -bang RunMake call s:run_make("<bang>")
 
 " A handy way to set makeprg.
 command! -nargs=1 Makeprg let &g:makeprg="<args>" | echo "makeprg = <args>"
@@ -493,11 +497,14 @@ nnoremap <leader>src :source ~/.vimrc<CR>
 command! -nargs=0 Vimrc   call s:open_vimrc_tab()
 function! s:open_vimrc_tab()
   tabnew ~/.vim/vimrc
+  if filereadable(expand("~/.vimrc.local"))
+    15sp ~/.vimrc.local
+  endif
   botright vnew ~/.vim/plugins.vim
   if filereadable(expand("~/.vim/plugins.local.vim"))
-    10sp ~/.vim/plugins.local.vim
+    15sp ~/.vim/plugins.local.vim
   endif
-  wincmd t  " focus on the first buffer (~/.vimrc)
+  wincmd t  " focus on the first window (~/.vimrc)
 endfunction
 
 " <leader>{y,x,p} : {yank,cut,paste} wrt the system clipboard
@@ -565,6 +572,10 @@ endif
 """""""""""""""""""""""""""""""""""""""""
 " 3. More Functions and Commands {{{
 """""""""""""""""""""""""""""""""""""""""
+
+function! Trim(input_string)  " or use trim() if neovim 0.3.2+ or vim 8.1+
+    return substitute(a:input_string, '^\s*\(.\{-}\)\s*$', '\1', '')
+endfunction
 
 " ----------------------------------------------------------------------------
 " <Leader>?/! : Google it / Feeling lucky
@@ -1274,8 +1285,8 @@ endfunction
 " [@migrated] :Rg, :RgFzf are defined in ~/.vim/plugged/fzf-ripgrep.vim/plugin/fzf_ripgrep.vim
 "
 " :RgFzf, :RF, :RGF -- Ripgrep + fzf (grep then fuzzy-filter)
-command! -nargs=*     RF      :RgFzf <args>
 command! -nargs=*     RGF     :RgFzf <args>
+cabbrev               RF      RgFzf
 
 " :Rg, :Grep -- Ripgrep + fzf (but refreshs ripgrep result upon updating query)
 command! -nargs=*     Grep    :Rg <args>
@@ -1287,12 +1298,71 @@ xnoremap <leader>rg   "gy:RgF <C-R>g<CR>
 " :Def, :RgDef -- Easily find definition/declaration (requires ripgrep)
 " e.g. :Def class, :Def def, :Def myfunc, :Def class MyClass
 command! -bang -nargs=* Def     :RgDef <args>
-command! -bang -nargs=* D       :RgDef <args>
+cabbrev                 D       Def
 
 " def-this (current cursor or visual selection)
 nnoremap <leader>def  :<C-U>Def*<CR>
 xnoremap <leader>def  "gy:Def <C-R>g<CR>
 
+
+" :DefPackage (perform :Def on the python package directory)
+command! -bang -nargs=* -complete=customlist,CompletePythonSitePackages
+      \ DefPackage call s:rgfzf_pypackage('fzf#vim#ripgrep#rgdef_fzf', <q-args>, <bang>1)
+
+" :RgPackage (Perform :RgFzf on the python package directory)
+" TODO: too many lines (millions) on empty query; we should avoid it?
+command! -bang -nargs=* -complete=customlist,CompletePythonSitePackages
+      \ RgPackage call s:rgfzf_pypackage('fzf#vim#ripgrep#rg_fzf', <q-args>, <bang>1)
+
+" command alias (:DP, :RP)
+cabbrev DP     DefPackage
+cabbrev RP     RgPackage
+
+function! s:rgfzf_pypackage(fzfrg_func, qargs, bang) abort
+  " TODO: If sitepackage dir is missing, resolve from python import path?
+  let l:args = split(a:qargs)
+  let l:query = join(l:args[1:])
+  if empty(l:args)   " corner case: empty query
+    let l:args = ['']
+  elseif l:args[0] == '*'   " search all packages.
+    let l:args[0] = ''
+  endif
+  " package aliases (pd -> pandas, np -> numpy, etc.)
+  let l:args[0] = get(get(g:, 'python_package_alias', {}), l:args[0], l:args[0])
+
+  return call(a:fzfrg_func, [l:query, {'fullscreen': a:bang,
+        \ 'path': printf('%s/%s', PythonSitePackagesDir(), Trim(l:args[0]))
+        \ } ])
+endfunction
+
+let g:python_package_alias = {
+      \ 'np': 'numpy', 'pd': 'pandas', 'mpl': 'matplotlib', 'plt': 'matplotlib', 'sns': 'seaborn',
+      \ 'tf': 'tensorflow', 'tfa': 'tensorflow_addon', 'tfp': 'tensorflow_probability',
+      \ 'tfio': 'tensorflow_io', 'snt': 'sonnet', 'ta': 'tf_agents',
+      \ }
+
+function! PythonSitePackagesDir()
+  return systemlist('python -c "from distutils.sysconfig import get_python_lib; print(get_python_lib())"')[0]
+endfunction
+function! CompletePythonSitePackages(...)
+  let l:prefix = get(a:, 1, '')
+  let l:cmdline = get(a:, 2, '')
+  if len(split(l:cmdline, ' ')) >= 3
+    return []  " from the second argument, no completion
+  endif
+  " TODO: can we cache it, storing into the current buffer?
+  let packages = systemlist(
+        \ 'python -c "from distutils.sysconfig import get_python_lib; print(get_python_lib())" ' .
+        \ ' | xargs -I{} find {}/ -maxdepth 1 -type d ' .
+        \ ' | grep -v "\(dist\|egg\)-info$" | grep -v "\.egg$" | sort ' .
+        \ ' | sed -e "s#\(.*\)/\(.*\)#\2#"'
+        \)
+  let filter_expr = '!empty(v:val)'
+  if !empty(l:prefix)
+    let filter_expr .= printf(' && v:val =~# "^%s"', escape(l:prefix, "'\""))
+  endif
+  return filter(packages, filter_expr)
+endfunction
 
 
 " FZF-based finder commands
@@ -1367,6 +1437,11 @@ nnoremap <leader>H  :History<CR>
 command! GS GFiles?
 " :H goes to :History
 command! H History
+
+" Marks
+if has_key(g:plugs, 'fzf.vim')
+  nnoremap '' :Marks<CR>
+endif
 
 " ---------------------------------------------------------------- }}}
 " vim-clap {{{
@@ -1915,6 +1990,11 @@ if has_key(g:plugs, 'coc.nvim')
           \ })
   endif
 
+  " [Command abbrs]
+  " ---------------
+  cabbrev  CC CocCommand
+  "cabbrev CF CocFzfList  (below)
+
   " [Custom keymappings] see plugin/coc.vim
   " ---------------------------------------
 
@@ -2032,7 +2112,11 @@ endif
 " coc-fzf {{{
 
 if has_key(g:plugs, 'coc-fzf')
-  " Nothing to configure as of now
+
+  cabbrev CF CocFzfList
+  cabbrev CC CocFzfList commands
+  cabbrev CA CocFzfList actions
+
 endif
 
 " ---------------------------------------------------------------- }}}
