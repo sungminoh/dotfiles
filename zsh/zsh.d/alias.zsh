@@ -1,6 +1,7 @@
-# Custom Alias commands for ZSH
+# Custom alias and functions for ZSH
 
 # Basic
+alias reload!=". ~/.zshrc && echo 'sourced ~/.zshrc' again"
 alias c='command'
 
 alias cp='nocorrect cp -iv'
@@ -87,7 +88,7 @@ if [[ "$(uname)" == "Darwin" ]] && (( $+commands[iterm-tab-color] )); then
 fi
 
 function ssh-tmuxa {
-    host="$1"
+    local host="$1"
     if [[ -z "$2" ]]; then
        ssh $host -t tmux attach -d
     else;
@@ -109,6 +110,25 @@ alias gdc='gd --cached --no-prefix'
 alias gds='gd --staged --no-prefix'
 alias gs='git status'
 alias gsu='gs -u'
+
+function ghad() {
+    # Run gha (git history) and refresh if anything in .git/ changes
+    local _command="clear; (date; echo ''; git history --all --color) \
+                    | head -n \$((\$(tput lines) - 2)) | less -FE"
+    bash -c "$_command"
+    fswatch -o $(git rev-parse --git-dir) \
+        --exclude='.*' --include='HEAD$' --include='refs/' \
+    | xargs -n1 -I{} bash -c "$_command" \
+    || true   # exit code should be 0
+}
+if alias gsd > /dev/null; then unalias gsd; fi
+function gsd() {
+    local _command="clear; (date; echo ''; git status --branch)"
+    bash -c "$_command"
+    fswatch -o $(git rev-parse --git-dir)/index \
+        | xargs -n1 -I{} bash -c "$_command" \
+    || true
+}
 
 # using the vim plugin 'GV'!
 function _vim_gv {
@@ -154,6 +174,24 @@ alias pytest='pytest -vv'
 alias pytest-pudb='pytest -s --pudb'
 alias pytest-html='pytest --self-contained-html --html'
 alias green='green -vv'
+
+# some useful fzf-grepping functions for python
+function pip-list-fzf() {
+  pip list "$@" | fzf --header-lines 2 --reverse --nth 1 --multi | awk '{print $1}'
+}
+function pip-search-fzf() {
+  if [[ -z "$1" ]]; then echo "argument required"; return 1; fi
+  pip search "$@" | grep '^[a-z]' | fzf --reverse --nth 1 --multi --no-sort | awk '{print $1}'
+}
+function conda-list-fzf() {
+  conda list "$@" | fzf --header-lines 3 --reverse --nth 1 --multi | awk '{print $1}'
+}
+function pipdeptree-fzf() {
+  python -m pipdeptree "$@" | fzf --reverse
+}
+function pipdeptree-vim() {   # e.g. pipdeptree -p <package>
+  python -m pipdeptree "$@" | vim - +"set ft=config foldmethod=indent" +"norm zR"
+}
 
 # }}}
 
@@ -206,7 +244,7 @@ function vimpy() {
     # e.g. $ vimpy numpy.core    --> opens $(site-package)/numpy/core/__init__.py
     if [[ -z "$1" ]]; then; echo "Argument required"; return 1; fi
 
-    module_path=$(python -c "import $1; print($1.__file__)")
+    local _module_path=$(python -c "import $1; print($1.__file__)")
     if [[ -n "$module_path" ]]; then
       echo $module_path
       vim "$module_path"
@@ -248,7 +286,7 @@ function watchgpucpu {
 }
 
 function usegpu {
-    gpu_id="$1"
+    local gpu_id="$1"
     if [[ "$1" == "none" ]]; then
         gpu_id=""
     elif [[ "$1" == "auto" ]] && (( $+commands[gpustat] )); then
