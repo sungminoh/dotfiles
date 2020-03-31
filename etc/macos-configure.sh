@@ -77,6 +77,21 @@ configure_vscode() {
     defaults delete -g ApplePressAndHoldEnabled || true
 }
 
+################################################################
+# Sungmin
+################################################################
+
+sungmin() {
+    defaults write -g QLPanelAnimationDuration -float 0; killall Finder
+    defaults write com.apple.Dock autohide-delay -float 0; killall Dock
+    defaults write com.apple.dock autohide-time-modifier -float 0; killall Dock
+    defaults write com.apple.dock springboard-show-duration -int 0; killall Dock
+    defaults write com.apple.dock springboard-hide-duration -int 0; killall Dock
+    defaults write -g NSWindowResizeTime -float 0.01
+    defaults write -g NSAutomaticWindowAnimationsEnabled -bool FALSE
+    defaults write com.apple.Dock showhidden -bool YES && killall Dock
+    brew install m-cli ctags tldr fd jq fswatch
+}
 
 ################################################################
 
@@ -87,6 +102,7 @@ all() {
     configure_safari
     configure_skim
     configure_vscode
+    sungmin
 }
 
 if [ -n "$1" ]; then

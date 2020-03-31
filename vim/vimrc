@@ -654,10 +654,9 @@ if has('termguicolors')
 endif
 
 " apply base theme
-silent! colorscheme xoria256
-silent! colorscheme vividchalk
 if !exists('g:colors_name')
   silent! colorscheme xoria256
+  silent! colorscheme vividchalk
 endif
 
 " airline theme: status line and tab line
