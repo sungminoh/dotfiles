@@ -152,7 +152,8 @@ set fileencodings=utf-8,cp949,latin1
 set fileformats=unix,dos
 
 " split and autocomplete settings
-set splitbelow                              " preview window at bottom
+set splitbelow                              " :split  opens window below (:belowright split), including preview windows
+set splitright                              " :vsplit opens window right (:belowright vsplit)
 set completeopt=menuone,preview,longest     " show preview and pop-up menu
 
 
@@ -165,10 +166,12 @@ if filereadable('/usr/share/dict/words')
   set dictionary+=/usr/share/dict/words
 endif
 
+" Retain more history (:, search strings, etc.)
+set history=10000
+set undolevels=1000
+
 " miscellanious
 set visualbell
-set history=1000
-set undolevels=1000
 set lazyredraw              " no redrawing during macro execution
 
 " Make gitgutter signs, etc. be more responsive (default is 4000ms)
@@ -301,11 +304,14 @@ if has('nvim')
   augroup END
 
   " terminal in a new tab or vsplit buffer
-  command! -nargs=* -complete=shellcmd Term         :tabnew | :term <args>
-  command! -nargs=* -complete=shellcmd STerm        :split  | :term <args>
-  command! -nargs=* -complete=shellcmd VTerm        :split  | :term <args>
-  command! -nargs=* -complete=shellcmd TermSplit    :split  | :term <args>
-  command! -nargs=* -complete=shellcmd TermVSplit   :vsplit | :term <args>
+  command! -nargs=*        -complete=shellcmd Term         :tabnew | :term <args>
+  command! -nargs=*        -complete=shellcmd Ttab         :tabnew | :term <args>
+
+  command! -nargs=* -count -complete=shellcmd TermSplit    :exec <q-mods> .' '. (<count> ? <count> : '').'split  | :term ' . <q-args>
+  command! -nargs=* -count -complete=shellcmd TermVSplit   :exec <q-mods> .' '. (<count> ? <count> : '').'vsplit | :term ' . <q-args>
+
+  command! -nargs=* -count -complete=shellcmd Tsplit       :exec <q-mods> .' '. (<count> ? <count> : '').'split  | :term ' . <q-args>
+  command! -nargs=* -count -complete=shellcmd Tvsplit      :exec <q-mods> .' '. (<count> ? <count> : '').'vsplit | :term ' . <q-args>
 
   " Mapping for <c-hjkl> in terminal mode
   " <c-h> might not work: see https://github.com/neovim/neovim/issues/2048
@@ -502,13 +508,13 @@ nnoremap <leader>src :source ~/.vimrc<CR>
 " :Vimrc opens vim config files in a new tab
 command! -nargs=0 Vimrc   call s:open_vimrc_tab()
 function! s:open_vimrc_tab()
-  tabnew ~/.vim/vimrc
+  exec ":tabnew " . resolve(expand("~/.vim/vimrc"))
   if filereadable(expand("~/.vimrc.local"))
-    15sp ~/.vimrc.local
+    exec ":belowright 15sp " . resolve(expand("~/.vimrc.local"))
   endif
-  botright vnew ~/.vim/plugins.vim
+  exec ":botright vnew " . resolve(expand("~/.vim/plugins.vim"))
   if filereadable(expand("~/.vim/plugins.local.vim"))
-    15sp ~/.vim/plugins.local.vim
+    exec ":belowright 15sp " . resolve(expand("~/.vim/plugins.local.vim"))
   endif
   wincmd t  " focus on the first window (~/.vimrc)
 endfunction
@@ -1311,6 +1317,41 @@ nnoremap <leader>def  :<C-U>Def*<CR>
 xnoremap <leader>def  "gy:Def <C-R>g<CR>
 
 
+" :RgPlug (perform :Rg on vim-plugins)
+command! -bang -nargs=* -complete=customlist,CompletePlugs
+      \ RgPlug call s:rgfzf_plug(<q-args>, <bang>1)
+function! s:rgfzf_plug(qargs, bang) abort
+  let l:args = split(a:qargs)
+  let l:query = join(l:args[1:])
+  if empty(l:args)   " corner case: empty query
+    echom "Argument required" | return
+  endif
+  let l:args[0] = Trim(l:args[0])
+  if l:args[0] == '*'   " search all packages.
+    let l:args[0] = ''
+  elseif index(keys(g:plugs), l:args[0]) == -1
+    echom printf("Unknown plug: %s", l:args[0]) | return
+  endif
+  call fzf#vim#ripgrep#rg_fzf(l:query, {'fullscreen': a:bang,
+        \ 'path': g:plug_home . "/" . l:args[0],
+        \ 'rg_additional_arg': '-u'} )
+endfunction
+
+function! CompletePlugs(...)
+  let l:prefix = get(a:, 1, '')
+  let l:cmdline = get(a:, 2, '')
+  let l:cmdwords = len(split(l:cmdline, ' '))
+  if l:cmdwords >= 3 || (l:cmdwords == 2 && l:cmdline =~ ' $')
+    return []  " from the second argument, no completion
+  endif
+  let filter_expr = '!empty(v:val)'
+  if !empty(l:prefix)
+    let filter_expr .= printf(' && v:val =~# "^%s"', escape(l:prefix, "'\""))
+  endif
+  return filter(sort(keys(g:plugs)), filter_expr)
+endfunction
+
+
 " :DefPackage (perform :Def on the python package directory)
 command! -bang -nargs=* -complete=customlist,CompletePythonSitePackages
       \ DefPackage call s:rgfzf_pypackage('fzf#vim#ripgrep#rgdef_fzf', <q-args>, <bang>1)
@@ -1353,7 +1394,8 @@ endfunction
 function! CompletePythonSitePackages(...)
   let l:prefix = get(a:, 1, '')
   let l:cmdline = get(a:, 2, '')
-  if len(split(l:cmdline, ' ')) >= 3
+  let l:cmdwords = len(split(l:cmdline, ' '))
+  if l:cmdwords >= 3 || (l:cmdwords == 2 && l:cmdline =~ ' $')
     return []  " from the second argument, no completion
   endif
   " TODO: can we cache it, storing into the current buffer?
@@ -1496,11 +1538,13 @@ let g:floaterm_height = 0.7
 
 augroup FloatermCustom
   autocmd!
-  " <C-h>, <C-z>: Hide the floating terminal window
-  autocmd FileType floaterm tmap <buffer> <silent> <C-h>
-        \ <C-\><C-n>:hide<CR>
+  " when leaving out from floaterm, hide it so that it doesn't cover other windows
+  autocmd BufLeave term://*
+        \  if &filetype == 'floaterm'
+        \|   call timer_start(0, {-> floaterm#hide()})
+        \| endif
   autocmd FileType floaterm tmap <buffer> <silent> <C-z>
-        \ <C-\><C-n>:hide<CR>
+        \ <C-\><C-n>:wincmd p<CR>
 augroup END
 
 " ---------------------------------------------------------------- }}}
@@ -1899,7 +1943,10 @@ nnoremap <leader>gd :Gvdiff<CR>
 nnoremap <leader>gD :Gvdiff HEAD<CR>
 nnoremap <leader>gs :Gstatus<CR>:20wincmd +<CR>
 nnoremap <leader>gw :Gwrite<CR>
-nnoremap <leader>gb :Gblame -w<CR>:vertical resize 10<CR>
+nnoremap <silent> <leader>gb :echo ':Gblame -w'<CR>:Gblame -w<CR>:call FugitiveResizeGblame()<CR>
+function! FugitiveResizeGblame() abort
+  if &ft == 'fugitiveblame' | vertical resize 10 | endif
+endfunction
 nnoremap <leader>gci :Gcommit --verbose<CR>
 nnoremap <leader>gcA :Gcommit --amend --verbose<CR>
 
