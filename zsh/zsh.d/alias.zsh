@@ -1,6 +1,7 @@
-# Custom Alias commands for ZSH
+# Custom alias and functions for ZSH
 
 # Basic
+alias reload!=". ~/.zshrc && echo 'sourced ~/.zshrc' again"
 alias c='command'
 
 alias cp='nocorrect cp -iv'
@@ -37,7 +38,7 @@ alias vi='vim'
 alias v='vim'
 
 # Just open ~/.vimrc, ~/.zshrc, etc.
-alias vimrc='vim +Vimrc +tabclose\ 1'
+alias vimrc='vim +"cd ~/.dotfiles" +Vimrc +tabclose\ 1'
 #alias vimrc='vim +cd\ ~/.vim -O ~/.vim/vimrc ~/.vim/plugins.vim'
 
 alias zshrc='vim +cd\ ~/.zsh -O ~/.zsh/zshrc ~/.zsh/zsh.d/alias.zsh'
@@ -154,25 +155,63 @@ function deactivate() {
 # virtualenv
 alias wo='workon'
 
+# Make sure the correct python from $PATH is used for the binary, even if
+# some the package is not installed in the current python environment.
+# (Do not execute a wrong bin from different python such as the global one)
+alias pip='python -m pip'
+alias pip3='python3 -m pip'
+alias mypy='python -m mypy'
+alias pycodestyle='python -m pycodestyle'
+alias pylint='python -m pylint'
+
+# PREFIX/bin/python -> PREFIX/bin/ipython, etc.
+alias ipdb='${$(which python)%/*}/ipdb'
+alias pudb='${$(which python)%/*}/pudb3'
+alias pudb3='${$(which python)%/*}/pudb3'
+alias python-config='${$(which python)%/*}/python3-config'
+alias python3-config='${$(which python)%/*}/python3-config'
+
 # ipython
+alias ipython='${$(which python)%/*}/ipython'
 alias ipy='ipython'
 alias ipypdb='ipy -c "%pdb" -i'   # with auto pdb calling turned ON
 
 alias ipynb='jupyter notebook'
 alias ipynb0='ipynb --ip=0.0.0.0'
-alias jupyter-lab='jupyter-lab --no-browser'
+alias jupyter='${$(which python)%/*}/jupyter'
+alias jupyter-lab='${$(which python)%/*}/jupyter-lab --no-browser'
 
 # ptpython
+alias ptpython='${$(which python)%/*}/ptpython'
+alias ptipython='${$(which python)%/*}/ptipython'
 alias ptpy='ptipython'
 
 # pip install nose, rednose
 alias nt='NOSE_REDNOSE=1 nosetests -v'
 
 # unit test: in verbose mode
-alias pytest='pytest -vv'
+alias pytest='python -m pytest -vv'
 alias pytest-pudb='pytest -s --pudb'
 alias pytest-html='pytest --self-contained-html --html'
 alias green='green -vv'
+
+# some useful fzf-grepping functions for python
+function pip-list-fzf() {
+  pip list "$@" | fzf --header-lines 2 --reverse --nth 1 --multi | awk '{print $1}'
+}
+function pip-search-fzf() {
+  if [[ -z "$1" ]]; then echo "argument required"; return 1; fi
+  pip search "$@" | grep '^[a-z]' | fzf --reverse --nth 1 --multi --no-sort | awk '{print $1}'
+}
+function conda-list-fzf() {
+  conda list "$@" | fzf --header-lines 3 --reverse --nth 1 --multi | awk '{print $1}'
+}
+function pipdeptree-fzf() {
+  python -m pipdeptree "$@" | fzf --reverse
+}
+function pipdeptree-vim() {   # e.g. pipdeptree -p <package>
+  python -m pipdeptree "$@" | vim - +"set ft=config foldmethod=indent" +"norm zR"
+}
 
 # }}}
 
