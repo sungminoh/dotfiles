@@ -30,3 +30,6 @@ Plug 'liuchengxu/vista.vim'
 
 " Vim
 Plug 'liuchengxu/vim-which-key'
+
+" Auto import
+Plug 'wookayin/vim-autoimport'
