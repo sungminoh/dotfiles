@@ -23,3 +23,10 @@ Plug 'google/vim-glaive'
 
 " Docker
 Plug 'ekalinin/dockerfile.vim'
+
+" Tagbar like
+Plug 'liuchengxu/vista.vim'
+
+
+" Vim
+Plug 'liuchengxu/vim-which-key'
