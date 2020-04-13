@@ -33,3 +33,6 @@ Plug 'liuchengxu/vim-which-key'
 
 " Auto import
 Plug 'wookayin/vim-autoimport'
+
+Plug 'hotwatermorning/auto-git-diff'
+Plug 'rhysd/committia.vim'
