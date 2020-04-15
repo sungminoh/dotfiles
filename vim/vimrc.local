@@ -83,6 +83,7 @@ map <leader>n :NERDTreeFind<CR>
 
 
 " Style
+<<<<<<< HEAD
 "call glaive#Install()
 "Glaive codefmt google_java_executable="java -jar /Users/sungmin/Google_Drive/_sync/setting/google-java-format-1.5-all-deps.jar"
 augroup autoformat_settings
@@ -95,6 +96,33 @@ augroup autoformat_settings
   autocmd FileType java AutoFormatBuffer google-java-format
   autocmd FileType python AutoFormatBuffer autopep8
 augroup END
+||||||| merged common ancestors
+call glaive#Install()
+Glaive codefmt google_java_executable="java -jar /Users/sungmin/Google_Drive/_sync/setting/google-java-format-1.5-all-deps.jar"
+augroup autoformat_settings
+  autocmd FileType bzl AutoFormatBuffer buildifier
+  autocmd FileType c,cpp,proto,javascript AutoFormatBuffer clang-format
+  autocmd FileType dart AutoFormatBuffer dartfmt
+  autocmd FileType go AutoFormatBuffer gofmt
+  autocmd FileType gn AutoFormatBuffer gn
+  autocmd FileType html,css,json AutoFormatBuffer js-beautify
+  autocmd FileType java AutoFormatBuffer google-java-format
+  autocmd FileType python AutoFormatBuffer autopep8
+augroup END
+=======
+"call glaive#Install()
+"Glaive codefmt google_java_executable="java -jar ~/Google_Drive/_sync/setting/google-java-format-1.5-all-deps.jar"
+"augroup autoformat_settings
+  "autocmd FileType bzl AutoFormatBuffer buildifier
+  "autocmd FileType c,cpp,proto,javascript AutoFormatBuffer clang-format
+  "autocmd FileType dart AutoFormatBuffer dartfmt
+  "autocmd FileType go AutoFormatBuffer gofmt
+  "autocmd FileType gn AutoFormatBuffer gn
+  "autocmd FileType html,css,json AutoFormatBuffer js-beautify
+  "autocmd FileType java AutoFormatBuffer google-java-format
+  "autocmd FileType python AutoFormatBuffer autopep8
+"augroup END
+>>>>>>> disable java style
 
 
 "################################################################################
