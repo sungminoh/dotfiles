@@ -20,6 +20,13 @@ bindkey '^H' backward-delete-char
 bindkey '^N' down-history
 bindkey '^P' up-history
 
-bindkey '^R' history-incremental-search-backward
+if [[ $(bindkey '^R') == *"undefined"* ]]; then
+  bindkey '^R' history-incremental-search-backward
+fi
 
 bindkey '\e.' insert-last-word # Alt-.
+
+
+# Vi mode key bindings
+# CTRL-X CTRL-E: Edit command in an external editor (even in insert mode)
+bindkey -M viins "$key_info[Control]X$key_info[Control]E" edit-command-line
