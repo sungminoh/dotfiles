@@ -84,6 +84,16 @@ set showtabline=2           " always show tab pannel
 
 set scrolloff=3
 
+if exists('##TermEnter')
+  " Disable scrolloff in terminal buffers (to avoid flickering)
+  " Note: scrolloff is a global option until neovim 0.5 (neovim/neovim#11915)
+  augroup TermScrollFix
+    autocmd!
+    autocmd TermOpen,TermEnter * setlocal scrolloff=0
+    autocmd TermLeave          * setlocal scrolloff=3        " workaround for nvim<0.5
+  augroup end
+endif
+
 " search
 set ignorecase              " case-insensitive by default
 set smartcase               " case-sensitive if keyword contains both uppercase and lowercase
@@ -279,6 +289,15 @@ noremap <C-j> <C-w>j
 noremap <C-k> <C-w>k
 noremap <C-l> <C-w>l
 
+" window navigation: aware of tmux
+let g:tmux_navigator_no_mappings = 1
+if has_key(g:plugs, 'vim-tmux-navigator') && !empty($TMUX)
+  nnoremap <silent> <c-h> :TmuxNavigateLeft<cr>
+  nnoremap <silent> <c-j> :TmuxNavigateDown<cr>
+  nnoremap <silent> <c-k> :TmuxNavigateUp<cr>
+  nnoremap <silent> <c-l> :TmuxNavigateRight<cr>
+endif
+
 " window resize (simply)
 nnoremap _ <C-W>-
 nnoremap + <C-W>+
@@ -311,7 +330,7 @@ if has('nvim')
   " Automatically enter insert mode when entering neovim terminal buffer
   augroup terminal_autoinsert
     autocmd!
-    autocmd BufWinEnter,WinEnter term://* startinsert
+    autocmd BufWinEnter,WinEnter *  if &buftype == 'terminal' | startinsert | endif
     autocmd TermOpen * startinsert
 
     " mouse click puts into normal mode even in terminal; disable this
@@ -438,6 +457,12 @@ else
     map <F5> <ESC>:w<CR>:make!<CR>
     imap <F5> <ESC>:w<CR>:make!<CR>a
 endif
+
+" Makeprg for vimrc is to reload itself.
+augroup VimrcMakeprg
+  autocmd!
+  autocmd FileType vim   if expand("%") =~ "vimrc" | nmap <buffer> <F5> :source %<CR> | endif
+augroup END
 
 " Alternative to <F5>
 map <leader>m <F5>
@@ -652,6 +677,19 @@ function! CommandAlias(aliasname, target)
     \ .printf('("%s") : ("%s"))', a:target, a:aliasname)
 endfunction
 
+" WinDo: Like :windo, but preserves the current window and view.
+function! WinDo(command) abort
+  let l:currwin = winnr()
+  let l:view = winsaveview()
+  try
+    execute printf('windo execute "%s"', escape(a:command, '"'))
+  finally
+    execute l:currwin . 'wincmd w'
+    call winrestview(l:view)
+  endtry
+endfunction
+command! -nargs=* WinDo   call WinDo(<q-args>)
+
 " ----------------------------------------------------------------------------
 " <Leader>?/! : Google it / Feeling lucky
 "   (code brought from @junegunn/dotfiles)
@@ -668,6 +706,31 @@ nnoremap <leader>? :call <SID>goog(expand("<cword>"), 0)<cr>
 nnoremap <leader>! :call <SID>goog(expand("<cword>"), 1)<cr>
 xnoremap <leader>? "gy:call <SID>goog(@g, 0)<cr>gv
 xnoremap <leader>! "gy:call <SID>goog(@g, 1)<cr>gv
+
+
+" :Toggle... command aliases
+if has('lambda')
+  augroup RegisterToggleCommands
+    autocmd!
+    autocmd CmdlineEnter * call RegisterToggleCommands() | autocmd! RegisterToggleCommands
+  augroup END
+  function! RegisterToggleCommands() abort
+    " collect all commands ending with :...Toggle and re-register them as :Toggle...
+    redir => cout
+      silent command
+    redir END
+    let command_list = split(cout, "\n")[1:]   " strip the header line
+    let command_list = filter(
+                \ map(command_list, { l, v -> Trim((matchlist(v, '\S[A-Z]\+Toggle ') + [''])[0]) }),
+                \ '!empty(v:val)')
+    for cmd in command_list
+      let new_cmd = 'Toggle' . substitute(cmd, 'Toggle$', '', '')
+      " register both alias and command (to make tab completion work)
+      exec printf(':command! -nargs=0 %s %s', new_cmd, cmd)
+      call CommandAlias(new_cmd, cmd)
+    endfor
+  endfunction
+endif
 
 " }}}
 """""""""""""""""""""""""""""""""""""""""
@@ -808,7 +871,7 @@ match ExtraWhitespace /\s\+$/
 
 augroup trailing_whitespaces
   autocmd!
-  autocmd FileType GV,gitmessengerpopup highlight clear ExtraWhitespace
+  autocmd FileType GV,gitmessengerpopup,fugitive highlight clear ExtraWhitespace
   autocmd BufWinEnter * match ExtraWhitespace /\s\+$/
   autocmd InsertEnter * match ExtraWhitespace /\s\+\%#\@<!$/
   autocmd InsertLeave * match ExtraWhitespace /\s\+$/
@@ -1595,22 +1658,25 @@ nnoremap <leader>tt  :FloatermToggle<CR>
 "
 function! FloatermToggleOrNew(...) abort
   " FloatermToggleOrNew(cmdline: str, bang: int = 0)
-  "  - if bang=1, run the command in a shell use sendkeys (
+  "  - if bang=1, run the command in a shell use sendkeys.
+  "  - if bang=0, execute the program without shell
   let ft_bufnr = floaterm#buflist#find_curr()
   let bang = a:0 >= 2 ? a:2 : 0
+  let cmd = a:0 > 0 ? Trim(a:1) : ''
   if ft_bufnr == -1
-    if a:0 > 0 && !bang
-      " when there is no existing floaterm window and an argument is given,
+    if empty(cmd)
+      " when there is no existing floaterm window
+      " and no argument given, just open a new floaterm shell.
+      FloatermNew --autoclose
+    elseif !bang
+      " if argument given but without bang,
       " use it as the command line to execute (e.g. :FT git status)
-      execute ':FloatermNew ' . a:1
-    elseif a:0 > 0 && bang
-      " Given bang, (e.g. :FT! git status) run cmd in a (interacive) shell.
-      FloatermNew
+      execute ':FloatermNew ' . cmd
+    elseif bang
+      " Given bang, (e.g. :FT! git status) run cmd in a (interactive) shell.
+      FloatermNew --autoclose
       let ft_bufnr = floaterm#buflist#find_curr()
-      call floaterm#terminal#send(ft_bufnr, [a:1])
-    else
-      " no argument, just open a new floaterm shell.
-      FloatermNew
+      call floaterm#terminal#send(ft_bufnr, [cmd])
     endif
   else
     FloatermToggle
@@ -2058,6 +2124,38 @@ command! -nargs=* GC :Gcommit -v<args>
 au FileType gitcommit nnoremap <buffer> <silent>
             \ cA :bd<CR>:<C-U>Gcommit --verbose --amend<CR>
 
+" GStatus: more configuration and keymaps for fugitive index buffers
+augroup FugitiveAddon
+  autocmd!
+  " Fix window height to be 20
+  autocmd FileType fugitive    if !&winfixheight | resize 20 | setlocal winfixheight | endif
+
+  " [?] show help  / [ci] commit -v  / [g=] Toggle inline diffs for all files
+  autocmd FileType fugitive    nnoremap <buffer> <silent> ?  :<C-u>vertical help fugitive-maps<CR>:wincmd p<CR>
+  autocmd FileType fugitive    nmap     <buffer> ci          cvc
+  autocmd FileType fugitive    nmap     <buffer> g=          ggVG=zM
+  " [,gd] diffvsplit
+  autocmd FileType fugitive    nmap     <buffer> <leader>gd  dv
+
+  " when git index is updated via hunk stage operation, reload fugitive buffers
+  if exists('*timer_start')  " 7.4.1578+
+    autocmd User GitGutterStage  call timer_start(0, function('ReloadFugitiveBlobs'))
+  endif
+augroup END
+
+function! ReloadFugitiveBlobs(...) abort
+  WinDo if bufname('%') =~ '^fugitive://' | :e | endif
+endfunction
+
+" highlights for fugitive
+hi fugitiveUntrackedHeading  gui=bold  guifg=#000087    guibg=Gold1
+hi fugitiveUntrackedSection  gui=bold  guifg=#bbbb00    guibg=NONE
+hi fugitiveUnstagedHeading   gui=bold  guifg=black      guibg=#d7875f
+hi fugitiveUnstagedSection   gui=bold  guifg=#af0000    guibg=NONE
+hi fugitiveStagedHeading     gui=bold  guifg=black      guibg=SeaGreen2
+hi fugitiveStagedSection     gui=bold  guifg=#009900    guibg=NONE
+hi fugitiveHeading           gui=bold                   guibg=NONE
+
 " fugitive://... buffers (index) should have better statusline;
 " display nothing but buffer/file names (would contain SHA, or ref, etc.)
 if has_key(g:plugs, 'vim-airline')
@@ -2066,7 +2164,6 @@ if has_key(g:plugs, 'vim-airline')
       let w:airline_section_b = airline#section#create(['branch'])
       let w:airline_section_c = '%f'
       let w:airline_section_z = ''     " no line numbers, etc.
-      "let g:airline_variable_referenced_in_statusline = 'foo'
     endif
   endfunction
   call airline#remove_statusline_func('FugitiveAirlinePatch')
