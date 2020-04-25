@@ -8,7 +8,8 @@
 
 [core]
 	excludesfile = ~/.gitignore
-	pager = "(diff-so-fancy 2>/dev/null || cat) | less --tabs=4 -RFX"
+	# pager = "(diff-so-fancy 2>/dev/null || cat) | less --tabs=4 -RFX"
+	pager = delta --dark --width 0 --tabs 2 --file-color yellow --file-style box
 
 	# do not quote non-ascii characters; display unicodes as-is
 	quotepath = false
