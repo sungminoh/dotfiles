@@ -120,7 +120,8 @@ post_actions += [
     '''#!/bin/bash
     # Update zgen modules and cache (the init file)
     zsh -c "
-        DOTFILES_UPDATE=1 source ${HOME}/.zshrc       # source zplug and list plugins
+        # source zplug and list plugins
+        DOTFILES_UPDATE=1 __p9k_instant_prompt_disabled=1 source ${HOME}/.zshrc
         if ! which zgen > /dev/null; then
             echo -e '\033[0;31m\
 ERROR: zgen not found. Double check the submodule exists, and you have a valid ~/.zshrc!\033[0m'
@@ -190,7 +191,8 @@ post_actions += [
 post_actions += [
     r'''#!/bin/bash
     # Change default shell to zsh
-    /bin/zsh --version >/dev/null || (echo -e "Error: /bin/zsh not found. Please install zsh"; exit 1)
+    /bin/zsh --version >/dev/null || (\
+        echo -e "\033[0;31mError: /bin/zsh not found. Please install zsh.\033[0m"; exit 1)
     if [[ ! "$SHELL" = *zsh ]]; then
         echo -e '\033[0;33mPlease type your password if you wish to change the default shell to ZSH\e[m'
         chsh -s /bin/zsh && echo -e 'Successfully changed the default shell, please re-login'
@@ -277,6 +279,13 @@ def log_boxed(msg, color_fn=WHITE, use_bold=False, len_adjust=0):
                      "│" + pad_msg   + "│\n" +
                      "└" + ("─" * l) + "┘\n"), cr=False)
 
+def makedirs(target, mode=511, exist_ok=False):
+    try:
+        os.makedirs(target, mode=mode)
+    except OSError as ex:  # py2 has no exist_ok=True
+        import errno
+        if ex.errno == errno.EEXIST and exist_ok: pass
+        else: raise
 
 # get current directory (absolute path)
 current_dir = os.path.abspath(os.path.dirname(__file__))
@@ -345,12 +354,9 @@ for target, source in sorted(tasks.items()):
 
     # make a symbolic link if available
     if not os.path.lexists(target):
-        try:
-            mkdir_target = os.path.split(target)[0]
-            os.makedirs(mkdir_target)
-            log(GREEN('Created directory : %s' % mkdir_target))
-        except:
-            pass
+        mkdir_target = os.path.split(target)[0]
+        makedirs(mkdir_target, exist_ok=True)
+        log(GREEN('Created directory : %s' % mkdir_target))
         os.symlink(source, target)
         log("{:50s} : {}".format(
             BLUE(target),
