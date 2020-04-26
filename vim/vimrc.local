@@ -51,7 +51,7 @@ let g:tern#arguments = ['--persistent']
 
 noremap <leader>= :vertical resize +5<CR>
 noremap <leader>- :vertical resize -5<CR>
-map <leader>where :NERDTreeFind<CR>
+map <leader>n :NERDTreeFind<CR>
 
 
 " Style
