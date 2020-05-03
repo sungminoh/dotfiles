@@ -96,7 +96,6 @@ augroup autoformat_settings
   autocmd FileType python AutoFormatBuffer autopep8
 augroup END
 
-
 "################################################################################
 
 function! MoveTo()
