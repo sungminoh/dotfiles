@@ -105,7 +105,7 @@ sungmin() {
     defaults write -g NSWindowResizeTime -float 0.01
     defaults write -g NSAutomaticWindowAnimationsEnabled -bool FALSE
     defaults write com.apple.Dock showhidden -bool YES && killall Dock
-    brew install m-cli ctags tldr fd jq fswatch monolith coreutils
+    brew install m-cli ctags tldr fd jq fswatch monolith coreutils ffmpeg
     npm install -g diff-so-fancy http-server
 }
 
