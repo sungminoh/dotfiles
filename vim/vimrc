@@ -262,7 +262,7 @@ let mapleader=','           " comma is the <Leader> key.
 let maplocalleader=','      " comma : <LocalLeader>
 
 inoremap <silent> <C-k> <ESC>:update<CR>
-nnoremap <silent> ,e :<C-u>e<CR>zR
+nnoremap <silent> <leader>e   :<C-u>e<CR>zR
 
 " navigation key mapping
 map <silent> k gk
@@ -629,6 +629,8 @@ nmap  <leader>s[ ysiw[
 nmap  <leader>s] ysiw]
 nmap  <leader>s{ ysiw{
 nmap  <leader>s} ysiw}
+" ask function: e.g., word -> function(word)
+nmap  <leader>sf ysiwf
 
 vmap  <leader>s" S"
 vmap  <leader>s' S'
@@ -643,6 +645,9 @@ vmap  <leader>s[ S[
 vmap  <leader>s] S]
 vmap  <leader>s{ S{
 vmap  <leader>s} S}
+" ask function: e.g., word -> function(word)
+vmap  <leader>sf Sf
+
 
 " Zoom Tmux
 noremap <silent> <leader>z :silent exec "!tmux resize-pane -Z"<CR>
@@ -690,8 +695,8 @@ endif
 function! CommandAlias(aliasname, target)
   " :aliasname => :target  (only applicable at the beginning of the command line)
   exec printf('cnoreabbrev <expr> %s ', a:aliasname)
-    \ .printf('((getcmdtype() ==# ":" && getcmdline() ==# "%s") ?', a:aliasname)
-    \ .printf('("%s") : ("%s"))', a:target, a:aliasname)
+    \ .printf('((getcmdtype() ==# ":" && getcmdline() ==# "%s") ? ', a:aliasname)
+    \ .printf('("%s") : ("%s"))', escape(a:target, '"'), escape(a:aliasname, '"'))
 endfunction
 
 " WinDo: Like :windo, but preserves the current window and view.
@@ -723,6 +728,19 @@ nnoremap <leader>? :call <SID>goog(expand("<cword>"), 0)<cr>
 nnoremap <leader>! :call <SID>goog(expand("<cword>"), 1)<cr>
 xnoremap <leader>? "gy:call <SID>goog(@g, 0)<cr>gv
 xnoremap <leader>! "gy:call <SID>goog(@g, 1)<cr>gv
+
+
+" command abbrevations
+" :eh, :vsh, :sph, :tabnewh => :{e, vs, sp, tabnew} %:h/
+"  (to open files in the same directory as the current buffer)
+function! EatWhitespace()
+  let c = nr2char(getchar(0))
+  return index([nr2char(9), nr2char(10), nr2char(13), ' '], c) >= 0 ? '' : c
+endfunction
+call CommandAlias('eh', "e %:h/<C-R>=EatWhitespace()<CR>")
+call CommandAlias('vsh', "vs %:h/<C-R>=EatWhitespace()<CR>")
+call CommandAlias('sph', "sp %:h/<C-R>=EatWhitespace()<CR>")
+call CommandAlias('tabnewh', "tabnew %:h/<C-R>=EatWhitespace()<CR>")
 
 
 " :Toggle... command aliases
@@ -803,6 +821,7 @@ if has('termguicolors')
 endif
 
 " apply colorscheme (base: xoria256 + customization)
+" See ~/.vim/colors/xoria256-wook.vim
 if !exists('g:colors_name')
   try
     silent! colorscheme xoria256-wook
@@ -1098,8 +1117,18 @@ let g:airline_powerline_fonts=1
 " See ~/.vim/plugged/vim-airline/autoload/airline/init.vim -> airline#init#sections() to see defaults {{{
 " -----------------------
 
+call airline#parts#define_minwidth('coc_status', 100)
+call airline#parts#define_minwidth('branch', 120)
+
 autocmd User AirlineAfterInit call AirlineSectionInit()
 function! AirlineSectionInit()
+  " define minwidth for some parts
+  call airline#parts#define_minwidth('coc_status', 100)
+  call airline#parts#define_minwidth('branch', 120)
+
+  " section b: git info (need to call again after define_minwidth/branch)
+  let g:airline_section_b = airline#section#create(['hunks', 'branch'])
+
   " section c: -coc_status
   let g:airline_section_c = airline#section#create([
         \ '%<', 'file', g:airline_symbols.space, 'readonly',
@@ -1242,6 +1271,9 @@ if has('nvim-0.4')
     tnoremap <buffer> <silent> <C-w>k       <C-\><C-n>:wincmd k<CR>
     tnoremap <buffer> <silent> <C-w>l       <C-\><C-n>:wincmd l<CR>
     tnoremap <buffer> <silent> <C-w>w       <C-\><C-n>:wincmd w<CR>
+    " Ctrl-{J, K} scrolls fzf (rather than wincmd)
+    tnoremap <buffer> <silent> <C-j>        <Down>
+    tnoremap <buffer> <silent> <C-k>        <Up>
 
   endfunction
 
@@ -2407,4 +2439,4 @@ endif
 
 " }}}
 
-" vim: set ts=2 sts=2 sw=2 foldmethod=marker foldlevel=1:
+" vim: set ts=2 sts=2 sw=2 foldmethod=marker:

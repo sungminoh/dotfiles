@@ -34,14 +34,25 @@ set completeopt-=longest
 
 " Prevent vim from removing indentation on python comments
 " https://stackoverflow.com/questions/2360249/
-inoremap # X<BS>#
+inoremap <buffer> # X<BS>#
 
 " LSP (coc.nvim) is used but just in case...
-setlocal omnifunc=python3complete#Complete
+if has('python3')
+  setlocal omnifunc=python3complete#Complete
+endif
 
 
 " shortcuts
 " =========
+
+if has_key(g:, 'plugs') && has_key(g:plugs, 'vim-surround')
+  " Apply str(...) repr(...) to the current word or selection
+  " :help surround-replacements
+  nmap <buffer>  <leader>str   ysiwfstr<CR>
+  vmap <buffer>  <leader>str   Sfstr<CR>
+  nmap <buffer>  <leader>repr  ysiwfrepr<CR>
+  vmap <buffer>  <leader>repr  Sfrepr<CR>
+endif
 
 " if coc.nvim is available, use the global shortcut
 " (see ~/.vimrc for the global mapping of <F3> key)
