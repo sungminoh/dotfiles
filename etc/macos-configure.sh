@@ -20,7 +20,7 @@ while true; do sudo -n true; sleep 60; kill -0 "$$" || exit; done 2>/dev/null &
 
 configure_general() {
     # Faster key repeat
-    defaults write NSGlobalDomain InitialKeyRepeat -int 20
+    defaults write NSGlobalDomain InitialKeyRepeat -int 15
     defaults write NSGlobalDomain KeyRepeat -int 1
 
     # Always show scrollbars (`WhenScrolling`, `Automatic` and `Always`)
