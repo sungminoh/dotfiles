@@ -75,14 +75,18 @@ if exists(':ImportSymbol')   " plugin vim-autoimport
   imap <silent> <buffer>  <M-CR>   <Esc>:ImportSymbol<CR>a
 endif
 if exists(':CocCommand')
-  command! -buffer ImportOrganize    :CocCommand python.sortImports
+  command! -buffer SortImport        :CocCommand python.sortImports
+  command! -buffer ImportSort        :SortImport
+  command! -buffer ImportOrganize    :SortImport
 endif
 
 
 function! s:method_on_cursor() abort
   " try to automatically get the current function
   if exists('*CocAction')
-    return CocAction('getCurrentFunctionSymbol')
+    let l:symbol = CocAction('getCurrentFunctionSymbol')
+    " coc has a bug where unicode item kind labels appear; strip it
+    return substitute(l:symbol, '^[^\w]\s*', '', '')
   else | return '' | endif
 endfunction
 
