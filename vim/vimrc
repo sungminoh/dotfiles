@@ -262,7 +262,7 @@ let mapleader=','           " comma is the <Leader> key.
 let maplocalleader=','      " comma : <LocalLeader>
 
 inoremap <silent> <C-k> <ESC>:update<CR>
-nnoremap <silent> ,e :<C-u>e<CR>zR
+nnoremap <silent> <leader>e   :<C-u>e<CR>zR
 
 " navigation key mapping
 map <silent> k gk
@@ -692,12 +692,16 @@ else
   endfunction
 endif
 
+" Command aliases or abbrevations
 function! CommandAlias(aliasname, target)
   " :aliasname => :target  (only applicable at the beginning of the command line)
   exec printf('cnoreabbrev <expr> %s ', a:aliasname)
-    \ .printf('((getcmdtype() ==# ":" && getcmdline() ==# "%s") ?', a:aliasname)
-    \ .printf('("%s") : ("%s"))', a:target, a:aliasname)
+    \ .printf('((getcmdtype() ==# ":" && getcmdline() ==# "%s") ? ', a:aliasname)
+    \ .printf('("%s") : ("%s"))', escape(a:target, '"'), escape(a:aliasname, '"'))
 endfunction
+
+" some basic command abbrs
+call CommandAlias('tnew', 'tabnew')
 
 " WinDo: Like :windo, but preserves the current window and view.
 function! WinDo(command) abort
@@ -728,6 +732,19 @@ nnoremap <leader>? :call <SID>goog(expand("<cword>"), 0)<cr>
 nnoremap <leader>! :call <SID>goog(expand("<cword>"), 1)<cr>
 xnoremap <leader>? "gy:call <SID>goog(@g, 0)<cr>gv
 xnoremap <leader>! "gy:call <SID>goog(@g, 1)<cr>gv
+
+
+" command abbrevations
+" :eh, :vsh, :sph, :tabnewh => :{e, vs, sp, tabnew} %:h/
+"  (to open files in the same directory as the current buffer)
+function! EatWhitespace()
+  let c = nr2char(getchar(0))
+  return index([nr2char(9), nr2char(10), nr2char(13), ' '], c) >= 0 ? '' : c
+endfunction
+call CommandAlias('eh', "e %:h/<C-R>=EatWhitespace()<CR>")
+call CommandAlias('vsh', "vs %:h/<C-R>=EatWhitespace()<CR>")
+call CommandAlias('sph', "sp %:h/<C-R>=EatWhitespace()<CR>")
+call CommandAlias('tabnewh', "tabnew %:h/<C-R>=EatWhitespace()<CR>")
 
 
 " :Toggle... command aliases
@@ -808,6 +825,7 @@ if has('termguicolors')
 endif
 
 " apply colorscheme (base: xoria256 + customization)
+" See ~/.vim/colors/xoria256-wook.vim
 if !exists('g:colors_name')
   try
     silent! colorscheme xoria256-wook
@@ -1014,8 +1032,8 @@ endfunction
 
 " Use z (stay) behavior as default
 if has_key(g:plugs, 'vim-asterisk')
-  "map *  <Plug>(asterisk-z*)
-  "map #  <Plug>(asterisk-z#)
+  map *  <Plug>(asterisk-z*)
+  map #  <Plug>(asterisk-z#)
   map g* <Plug>(asterisk-gz*)
   map g# <Plug>(asterisk-gz#)
 endif
@@ -1108,6 +1126,13 @@ call airline#parts#define_minwidth('branch', 120)
 
 autocmd User AirlineAfterInit call AirlineSectionInit()
 function! AirlineSectionInit()
+  " define minwidth for some parts
+  call airline#parts#define_minwidth('coc_status', 100)
+  call airline#parts#define_minwidth('branch', 120)
+
+  " section b: git info (need to call again after define_minwidth/branch)
+  let g:airline_section_b = airline#section#create(['hunks', 'branch'])
+
   " section c: -coc_status
   let g:airline_section_c = airline#section#create([
         \ '%<', 'file', g:airline_symbols.space, 'readonly',
@@ -1265,6 +1290,11 @@ if executable('ag')
   "let $FZF_DEFAULT_COMMAND = '(git ls-files ":/" || ag -l -g "") | LC_COLLATE=C sort | uniq  2> /dev/null'
   let $FZF_DEFAULT_COMMAND = 'ag -l -g "" 2> /dev/null'
 endif
+
+" fzf.vim options
+
+" :Buffers => Jump to the existing window if possible
+let g:fzf_buffers_jump = 1
 
 " Customize built-in commands of 'vim-fzf' (overriden by commands here) {{{
 " For full list, @see https://github.com/junegunn/fzf.vim/blob/master/plugin/fzf.vim#L42
@@ -2418,4 +2448,4 @@ endif
 
 " }}}
 
-" vim: set ts=2 sts=2 sw=2 foldmethod=marker foldlevel=1:
+" vim: set ts=2 sts=2 sw=2 foldmethod=marker:
