@@ -1121,9 +1121,6 @@ let g:airline_powerline_fonts=1
 " See ~/.vim/plugged/vim-airline/autoload/airline/init.vim -> airline#init#sections() to see defaults {{{
 " -----------------------
 
-call airline#parts#define_minwidth('coc_status', 100)
-call airline#parts#define_minwidth('branch', 120)
-
 autocmd User AirlineAfterInit call AirlineSectionInit()
 function! AirlineSectionInit()
   " define minwidth for some parts
@@ -1829,7 +1826,7 @@ nmap ga <Plug>(EasyAlign)
 let g:indentLine_conceallevel = 1
 
 " conceal values might not work well for tex files (hides some characters)
-let g:indentLine_fileTypeExclude = ['tex', 'markdown', 'pandoc', 'coc-explorer']
+let g:indentLine_fileTypeExclude = ['tex', 'markdown', 'pandoc', 'coc-explorer', 'floaterm', 'tagbar']
 
 " command alias
 command! -nargs=0 ToggleIndentLines   :IndentLinesToggle
