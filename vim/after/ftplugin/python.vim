@@ -86,7 +86,7 @@ function! s:method_on_cursor() abort
   if exists('*CocAction')
     let l:symbol = CocAction('getCurrentFunctionSymbol')
     " coc has a bug where unicode item kind labels appear; strip it
-    return substitute(l:symbol, '^[^\w]\s*', '', '')
+    return substitute(l:symbol, '^[^a-z]\s*', '', '')
   else | return '' | endif
 endfunction
 
@@ -105,16 +105,19 @@ if has_key(g:plugs, 'vim-floaterm')
       endif
     endif
     if l:bufnr == -1
-      let l:bufnr = floaterm#new(l:cmd,
+      " floaterm#new(bang, cmd, winopts, jobopts)
+      let l:bufnr = floaterm#new(1, l:cmd,
             \ {'name': s:ftname, 'position': 'right', 'wintype': 'normal',
-            \  'width': float2nr(&columns / 3.0), 'autoclose': 1}, {}, 1)
+            \  'width': float2nr(&columns / 3.0), 'autoclose': 1},
+            \ {}
+            \)
       tnoremap <buffer> <silent> <F6>  <c-\><c-n>:FloatermHide<CR>
       wincmd p        " move back to the python buf
     else
       call floaterm#terminal#send(l:bufnr, [l:CTRL_U . l:cmd])
       " show the window (it could be either hidden or visible)
       " this works as we are currently on the 'python' buffer
-      call floaterm#toggle(s:ftname)
+      call floaterm#toggle(0, s:ftname)
       wincmd p        " move back to the python buf
     endif
   endfunction

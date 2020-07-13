@@ -708,9 +708,9 @@ function! WinDo(command) abort
   let l:currwin = winnr()
   let l:view = winsaveview()
   try
-    execute printf('windo execute "%s"', escape(a:command, '"'))
+    execute printf('noautocmd windo execute "%s"', escape(a:command, '"'))
   finally
-    execute l:currwin . 'wincmd w'
+    noautocmd execute l:currwin . 'wincmd w'
     call winrestview(l:view)
   endtry
 endfunction
@@ -1120,9 +1120,6 @@ let g:airline_powerline_fonts=1
 " [section customization] (:h airline-sections)
 " See ~/.vim/plugged/vim-airline/autoload/airline/init.vim -> airline#init#sections() to see defaults {{{
 " -----------------------
-
-call airline#parts#define_minwidth('coc_status', 100)
-call airline#parts#define_minwidth('branch', 120)
 
 autocmd User AirlineAfterInit call AirlineSectionInit()
 function! AirlineSectionInit()
@@ -2192,8 +2189,11 @@ if has_key(g:plugs, 'vim-airline')
       let w:airline_section_z = ''     " no line numbers, etc.
     endif
   endfunction
-  call airline#remove_statusline_func('FugitiveAirlinePatch')
-  call airline#add_statusline_func('FugitiveAirlinePatch')
+  try
+    call airline#remove_statusline_func('FugitiveAirlinePatch')
+    call airline#add_statusline_func('FugitiveAirlinePatch')
+  catch /E117/  " airline doesn't exist yet
+  endtry
 endif
 
 " ---------------------------------------------------------------- }}}
