@@ -143,10 +143,17 @@
 	# smarter diff on splits around blank lines (git 2.9.0+)
 	compactionHeuristic = true
 
-	tool = intellij
+	# tool = intellij
+	tool = meld 
+
+[difftool]
+	prompt = false
 
 [difftool "intellij"]
 	cmd = /Applications/IntelliJ\\ IDEA.app/Contents/MacOS/idea diff $(cd $(dirname "$LOCAL") && pwd)/$(basename "$LOCAL") $(cd $(dirname "$REMOTE") && pwd)/$(basename "$REMOTE")
+
+[difftool "meld"]
+    cmd = /Applications/Meld.app/Contents/MacOS/meld "$LOCAL" "$REMOTE"
 
 [diff-so-fancy]
 	markEmptyLines = false
@@ -159,11 +166,17 @@
 
 [merge]
 	conflictstyle = diff3
-	tool = intellij
+	tool = meld
+
+[mergetool]
+	prompt = false
 
 [mergetool "intellij"]
-	cmd = /Applications/IntelliJ\\ IDEA.app/Contents/MacOS/idea merge $(cd $(dirname "$LOCAL") && pwd)/$(basename "$LOCAL") $(cd $(dirname "$REMOTE") && pwd)/$(basename "$REMOTE") $(cd $(dirname "$BASE") && pwd)/$(basename "$BASE") $(cd $(dirname "$MERGED") && pwd)/$(basename "$MERGED")
+	cmd = /Applications/IntelliJ\\ IDEA.app/Contents/MacOS/idea merge $(cd $(dirname "$LOCAL") && pwd)/$(basename "$LOCAL") $(cd $(dirname "$MERGED") && pwd)/$(basename "$MERGED") $(cd $(dirname "$REMOTE") && pwd)/$(basename "$REMOTE") $(cd $(dirname "$MERGED") && pwd)/$(basename "$MERGED")
 	trustExitCode = true
+
+[mergetool "meld"]
+  cmd = /Applications/Meld.app/Contents/MacOS/meld "$LOCAL" "$MERGED" "$REMOTE" --output="$MERGED"
 
 [format]
 	# based on 'fuller' format, but adds color customization
