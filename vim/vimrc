@@ -362,6 +362,10 @@ if has('nvim')
   tmap <silent> <C-k> <C-\><C-n>:wincmd k<CR>
   "tmap <C-l> <C-\><C-n><C-l>
   " TODO: <c-l> is for clear screen...?
+
+  " Ctrl-E, Ctrl-Y: Scroll window in terminal-normal mode
+  tmap <silent> <C-e> <C-\><C-n><C-e>
+  tmap <silent> <C-y> <C-\><C-n><C-y>
 endif
 
 if has('nvim')
@@ -1710,6 +1714,10 @@ endfunction
 let g:floaterm_width = 0.9
 let g:floaterm_height = 0.7
 
+" Turn off auto-hiding of previous floaterm windows,
+" in favor of the autohide autocmd below (only works for 'floating' windows)
+let g:floaterm_autohide = 0
+
 augroup FloatermCustom
   autocmd!
   " when leaving out from floaterm, hide it so that it doesn't cover other windows
@@ -1808,6 +1816,11 @@ let g:NERDTreeChDirMode = 1
 
 " <Leader>N toggles NERDTree (across tab)
 map <Leader>N <plug>NERDTreeTabsToggle<CR>
+
+" By default nerdtree maps <C-j> and <C-k> which I want to reserve for window
+" navigation instead for the sake consistency. Therefore use different keymaps.
+let g:NERDTreeMapJumpNextSibling = '<leader><C-j>'
+let g:NERDTreeMapJumpPrevSibling = '<leader><C-k>'
 
 " Startup Options (do NOT show automatically)
 let g:nerdtree_tabs_open_on_console_startup = 0
