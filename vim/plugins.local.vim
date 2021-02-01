@@ -36,3 +36,16 @@ Plug 'wookayin/vim-autoimport'
 
 Plug 'hotwatermorning/auto-git-diff'
 Plug 'rhysd/committia.vim'
+
+
+" Telescope
+Plug 'nvim-lua/popup.nvim'
+Plug 'nvim-lua/plenary.nvim'
+Plug 'nvim-telescope/telescope.nvim'
+
+
+" Better than NERDTree
+Plug 'ms-jpq/chadtree', {'branch': 'chad', 'do': 'python3 -m chadtree deps'}
+
+
+Plug 'dstein64/nvim-scrollview', { 'branch': 'main' }

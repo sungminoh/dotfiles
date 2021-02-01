@@ -108,6 +108,10 @@ sungmin() {
     brew install m-cli ctags tldr fd jq fswatch monolith coreutils ffmpeg bit-git tmux-xpanes sleepwatcher git-delta ncdu meld iwlist
     brew tap wlezzar/jtab https://github.com/wlezzar/jtab\nbrew install wlezzar/jtab/jtab
     npm install -g diff-so-fancy http-server
+    # cheat
+    curl https://cht.sh/:cht.sh | sudo tee /usr/local/bin/cht.sh
+    chmod +x /usr/local/bin/cht.sh
+    brew install --cask lunar
 }
 
 ################################################################
