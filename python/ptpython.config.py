@@ -117,6 +117,7 @@ def configure(repl: ptpython.python_input.PythonInput):
     # A colorscheme that looks good on dark backgrounds is 'native':
     # but I use a bit different colorschme (friendly) rather than the default
     repl.use_code_colorscheme('friendly')
+    repl.use_code_colorscheme('monokai')
 
     # Set color depth (keep in mind that not all terminals support true color).
     # We use 24-bit true color.

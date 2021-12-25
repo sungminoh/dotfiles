@@ -1128,6 +1128,7 @@ endif
 if !exists('g:colors_name')
   try
     silent! colorscheme xoria256-wook
+    silent! colorscheme vividchalk
   catch /E185/  " Cannot find color scheme
     silent! colorscheme evening
   endtry
@@ -3273,6 +3274,9 @@ let g:tagbar_show_visibility = 0
 """""""""""""""""""""""""""""""""""""""""
 
 " Use local vimrc if available
+if filereadable(expand('~/.vim/vimrc.local'))
+  source \~/.vim/vimrc.local
+endif
 if filereadable(expand('~/.vimrc.local'))
   source \~/.vimrc.local
 endif
