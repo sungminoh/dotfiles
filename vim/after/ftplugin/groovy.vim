@@ -1,0 +1,3 @@
+" groovy.vim
+
+setlocal noexpandtab
