@@ -1,0 +1,3 @@
+" java.vim
+
+setlocal noexpandtab
