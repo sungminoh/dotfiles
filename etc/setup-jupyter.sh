@@ -10,13 +10,17 @@ install_jupyter_basic() {
     pip install --upgrade 'ipywidgets>=7.5.0'
     pip install --upgrade 'ipykernel>=5.1'
     pip install --upgrade 'ipympl'
+    pip install --upgrade 'jupyterlab-vim'
 
+    jupyter nbextension install --py widgetsnbextention --user --no-build
     jupyter nbextension enable --py --sys-prefix 'widgetsnbextension'
+    #jupyter nbextension enable 'vim_binding/vim_binding' --no-build
 
     jupyter labextension install '@jupyterlab/toc' --no-build
 
     jupyter labextension install '@jupyter-widgets/jupyterlab-manager' --no-build
     jupyter labextension install 'jupyter-matplotlib' --no-build
+
 
     jupyter lab build
 }
