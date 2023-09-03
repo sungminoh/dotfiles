@@ -28,3 +28,13 @@ path=(
 if ! (( ${path[(I)$HOME/.local/bin]} )); then
   path=( $HOME/.local/bin $path )
 fi
+eval "$(/opt/homebrew/bin/brew shellenv)"
+
+
+autoload -U +X bashcompinit && bashcompinit
+complete -o nospace -C /usr/local/bin/bit bit
+
+export PYENV_ROOT="$HOME/.pyenv"
+command -v pyenv >/dev/null || export PATH="$PYENV_ROOT/bin:$PATH"
+eval "$(pyenv init -)"
+export PTPYTHON_CONFIG_HOME="/Users/sungminoh/.config/ptpython"

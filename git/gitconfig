@@ -8,7 +8,8 @@
 
 [core]
 	excludesfile = ~/.gitignore
-	pager = "(diff-so-fancy 2>/dev/null || cat) | less --tabs=4 -RFX"
+	#pager = "(diff-so-fancy 2>/dev/null || cat) | less --tabs=4 -RFX"
+	pager = (delta --dark --width 0 --tabs 2 --file-color yellow --file-style box 2>/dev/null || diff-so-fancy 2>/dev/null || cat) | less --tabs=4 -RFX
 
 	# do not quote non-ascii characters; display unicodes as-is
 	quotepath = false
@@ -50,6 +51,54 @@
 
 	# side-by-side diff, requires cdiff
 	sdiff = "! git diff $@ | cdiff -s -w0 "
+
+	alias = "!# Prints all aliases.;\n\
+	git config --list \
+	| egrep '^alias.+' \
+	| sed -e 's/^alias\\.//' \
+	| sed -e 's/^[^=]*=/\\'$'\\033[36m&\\033[(B\\033[m/' \
+	| column -t -s'=' \
+	| sed 's/!#* *//; s/;$//' \
+	| cut -c1-85"
+
+	sync= "!git fetch --all --prune && git rebase -p --autostash $1"
+	ch = "! # checkout to a branch; \n\
+		f() { \
+			_height=$(stty size | awk '{print $2}');\
+			git branch | fzf --preview \"git history --color {1} | head -n $_height\"; \
+		}; f | xargs git checkout"
+	bd = "! # delete branches; \n\
+		f() { \
+			_height=$(stty size | awk '{print $2}'); \
+			git branch | fzf -m  --header \"Select branched to delete\" --preview \"git history --color {1} | head -n $_height\"; \
+		}; f | xargs git branch -d"
+	bD = "! # delete branches; \n\
+		f() { \
+			_height=$(stty size | awk '{print $2}'); \
+			git branch | fzf -m  --header \"Select branched to delete\" --preview \"git history --color {1} | head -n $_height\"; \
+		}; f | xargs git branch -D"
+	a = "! # add files with fzf preview diffs; \n\
+		f() { \
+			_height=$(stty size | awk '{print $1}'); \
+			fileA=/tmp/git-s-$(uuidgen); \
+			fileB=/tmp/git-diff-$(uuidgen); \
+			git status -s | awk '{print $2,$1}' > $fileA; \
+			git diff --numstat | awk '{print $3,$1,$2}' > $fileB; \
+			join -t' ' -a 1 $fileA $fileB | awk '{print $2, \"(+\"$3 \",-\"$4\")\", $1}' | sed 's/(+,-)/./' | column -t -s' ' \
+			| fzf -m --header \"$(git diff --shortstat)\" --preview \
+				\"if [[ {1} == '??' ]]; then cat {3}; else git wdiff {3}; fi \
+				| head -n $_height\" \
+			| awk '{print $3}' \
+			| xargs git add; \
+			rm -f $fileA $fileB; \
+		}; f"
+
+	resolve = "! # mergetool selector; \n\
+		f() { \
+			_height=$(stty size | awk '{print $2}');\
+			git diff --name-only --diff-filter=U | fzf --preview \"git wdiff {1} | head -n $_height\"; \
+		}; f | xargs git mergetool; \
+		find . -name '*.orig' -delete;"
 
 [color]
 	status = auto
@@ -102,6 +151,18 @@
 	# smarter diff on splits around blank lines (git 2.9.0+)
 	compactionHeuristic = true
 
+	tool = intellij
+	# tool = meld 
+
+[difftool]
+	prompt = false
+
+[difftool "intellij"]
+	cmd = /Applications/IntelliJ\\ IDEA.app/Contents/MacOS/idea diff $(cd $(dirname "$LOCAL") && pwd)/$(basename "$LOCAL") $(cd $(dirname "$REMOTE") && pwd)/$(basename "$REMOTE")
+
+[difftool "meld"]
+    cmd = /Applications/Meld.app/Contents/MacOS/meld "$LOCAL" "$REMOTE"
+
 [delta]
 	features = decorations
 	keep-plus-minus-markers = true
@@ -119,6 +180,19 @@
 
 [merge]
 	conflictstyle = diff3
+	tool = intellij
+	# tool = meld 
+
+[mergetool]
+	prompt = false
+
+[mergetool "intellij"]
+	# cmd = /Applications/IntelliJ\\ IDEA.app/Contents/MacOS/idea merge $(cd $(dirname "$LOCAL") && pwd)/$(basename "$LOCAL") $(cd $(dirname "$MERGED") && pwd)/$(basename "$MERGED") $(cd $(dirname "$REMOTE") && pwd)/$(basename "$REMOTE") $(cd $(dirname "$MERGED") && pwd)/$(basename "$MERGED")
+	cmd = /Applications/IntelliJ\\ IDEA.app/Contents/MacOS/idea merge $(cd $(dirname "$LOCAL") && pwd)/$(basename "$LOCAL") $(cd $(dirname "$REMOTE") && pwd)/$(basename "$REMOTE") $(cd $(dirname "$BASE") && pwd)/$(basename "$BASE") $(cd $(dirname "$MERGED") && pwd)/$(basename "$MERGED")
+	trustExitCode = true
+
+[mergetool "meld"]
+  cmd = /Applications/Meld.app/Contents/MacOS/meld "$LOCAL" "$MERGED" "$REMOTE" --output="$MERGED"
 
 [rebase]
 	autosquash = true
