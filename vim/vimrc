@@ -1255,6 +1255,7 @@ endif
 if !has('nvim-0.8') && !exists('g:colors_name')
   try
     silent! colorscheme xoria256-wook
+    silent! colorscheme vividchalk
   catch /E185/  " Cannot find color scheme
     silent! colorscheme evening
   endtry
@@ -2886,6 +2887,9 @@ endfunction | call s:source_PlugConfig()
 """""""""""""""""""""""""""""""""""""""""
 
 " Use local vimrc if available
+if filereadable(expand('~/.vim/vimrc.local'))
+  source \~/.vim/vimrc.local
+endif
 if filereadable(expand('~/.vimrc.local'))
   source \~/.vimrc.local
 endif
