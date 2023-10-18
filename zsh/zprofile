@@ -34,3 +34,94 @@ unset CONDA_PYTHON_EXE
 unset CONDA_SHLVL
 
 # vim: set ft=zsh ts=2 sts=2 sw=2:
+eval "$($(which brew) shellenv)"
+
+
+autoload -U +X compinit && compinit
+autoload -U +X bashcompinit && bashcompinit
+complete -o nospace -C /usr/local/bin/bit bit
+
+export PYENV_ROOT="$HOME/.pyenv"
+[[ -d $PYENV_ROOT/bin ]] && export PATH="$PYENV_ROOT/bin:$PATH"
+eval "$(pyenv init -)"
+eval "$(pyenv virtualenv-init -)"
+
+export PTPYTHON_CONFIG_HOME="/Users/sungminoh/.config/ptpython"
+
+mkvenv() {
+    if [[ -d ".python-version" || -f ".python-version" ]]; then
+        printf ".python-version already exists. If this is a mistake, remove it manually and try again.\n"
+    else
+        # 현재 디렉토리 이름을 가상 환경 이름으로 사용
+        local dirname="$(basename $PWD)"
+        printf "Creating pyenv virtualenv for ${PURPLE}%s${NORMAL}\n" "$dirname"
+
+        # 현재 기본 Python 버전 가져오기
+        local python_version=$(pyenv version-name)
+        local python_env_name="$dirname"
+
+        if [[ -z "$python_env_name" ]]; then
+            printf "ERROR: Virtual environment name is required.\n"
+            printf "Usage: create_pyenv_env <ENV_NAME>\n"
+            return 1
+        fi
+
+        # pyenv 가상 환경 생성
+        pyenv virtualenv "$python_version" "$python_env_name"
+        if [[ $? -ne 0 ]]; then
+            printf "ERROR: Failed to create pyenv virtual environment.\n"
+            return 1
+        fi
+
+        # 로컬 pyenv 설정
+        pyenv local "$python_env_name"
+        if [[ $? -ne 0 ]]; then
+            printf "ERROR: Failed to set pyenv local environment.\n"
+            return 1
+        fi
+
+        # pip 업그레이드
+        pip install --upgrade pip > /dev/null
+        if [[ $? -ne 0 ]]; then
+            printf "ERROR: Failed to upgrade pip.\n"
+            return 1
+        fi
+
+        printf "${GREEN}Successfully created pyenv environment: %s with Python %s${NORMAL}\n" "$python_env_name" "$python_version"
+    fi
+}
+
+rmvenv() {
+    if [[ -f ".python-version" ]]; then
+        # .python-version 파일에서 환경 이름 가져오기
+        local python_env_name="$(<.python-version)"
+
+        printf "Detected pyenv environment: ${PURPLE}%s${NORMAL}\n" "$python_env_name"
+
+        # 현재 활성화된 가상 환경이 삭제하려는 환경인지 확인
+        if [[ -n "$VIRTUAL_ENV" ]]; then
+            local current_venv="$(basename $VIRTUAL_ENV)"
+            if [[ "$current_venv" == "$python_env_name" ]]; then
+                printf "Currently using the environment: %s. Deactivating...\n" "$current_venv"
+                pyenv deactivate
+            fi
+        fi
+
+        # pyenv 환경 삭제
+        printf "Deleting pyenv environment: ${PURPLE}%s${NORMAL}...\n" "$python_env_name"
+        pyenv virtualenv-delete -f "$python_env_name"
+        if [[ $? -ne 0 ]]; then
+            printf "${RED}ERROR: Failed to delete the pyenv environment.${NORMAL}\n"
+            return 1
+        fi
+
+        # 로컬 설정 제거
+        printf "Unsetting pyenv local environment...\n"
+        pyenv local --unset
+        rm -rf .python-version
+
+        printf "${GREEN}Successfully removed pyenv environment: %s${NORMAL}\n" "$python_env_name"
+    else
+        printf "${RED}No .python-version file in the current directory!${NORMAL}\n"
+    fi
+}

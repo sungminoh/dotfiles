@@ -58,4 +58,5 @@ return {
     cmd = { 'Dash', 'DashWord' },
   };
   Plug 'darfink/vim-plist' { enabled = vim.fn.has('mac') > 0 };
+  Plug 'github/copilot.vim' { enabled = true }
 }

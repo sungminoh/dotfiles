@@ -33,7 +33,7 @@ plugin 'junegunn/fzf-git.sh' kind:clone
 plugin 'zsh-users/zsh-autosuggestions'
 
 # conda support: Use my own fork for a while, to support autoswitch into anaconda envs
-plugin 'wookayin/zsh-autoswitch-virtualenv'
+# plugin 'wookayin/zsh-autoswitch-virtualenv'
 
 if [[ "`uname`" == "Darwin" ]]; then
   plugin 'wookayin/anybar-zsh'
