@@ -139,6 +139,45 @@ configure_skim() {
 
 
 ################################################################
+# Sungmin
+################################################################
+
+sungmin() {
+    defaults write -g QLPanelAnimationDuration -float 0; killall Finder
+    defaults write com.apple.Dock autohide-delay -float 0; killall Dock
+    defaults write com.apple.dock autohide-time-modifier -float 0; killall Dock
+    defaults write com.apple.dock springboard-show-duration -int 0; killall Dock
+    defaults write com.apple.dock springboard-hide-duration -int 0; killall Dock
+    defaults write -g NSWindowResizeTime -float 0.01
+    defaults write -g NSAutomaticWindowAnimationsEnabled -bool FALSE
+    defaults write com.apple.Dock showhidden -bool YES && killall Dock
+
+    defaults write .GlobalPreferences com.apple.mouse.scaling -1
+    defaults write -g ApplePressAndHoldEnabled -bool false
+    defaults write -g InitialKeyRepeat -float 10.0 # normal minimum is 15 (225 ms)
+    defaults write -g KeyRepeat -float 1.0 # normal minimum is 2 (30 ms)   # brew install rg m-cli ctags tldr fd jq fswatch monolith coreutils ffmpeg bit-git tmux-xpanes sleepwatcher git-delta ncdu meld iwlist
+
+    brew install pyenv
+    pyenv install 3.14.2
+    pyenv global 3.14.2
+    pip install virtualenv
+    brew install pyenv-virtualenv
+
+    brew install bitwarden-cli
+
+
+    # https://github.com/sindresorhus/quick-look-plugins
+    brew install qlcolorcode qlstephen qlmarkdown quicklook-json qlimagesize suspicious-package apparency quicklookase qlvideo
+    # brew tap wlezzar/jtab https://github.com/wlezzar/jtab\nbrew install wlezzar/jtab/jtab
+    # npm install -g diff-so-fancy http-server
+    # cheat
+    # curl https://cht.sh/:cht.sh | sudo tee /usr/local/bin/cht
+    # sudo chmod +x /usr/local/bin/cht
+    # brew install --cask lunar
+}
+
+
+################################################################
 
 all() {
   configure_general

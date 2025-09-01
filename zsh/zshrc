@@ -267,3 +267,6 @@ if [ -n "$ZSH_PROFILE_LOG" ]; then
 fi
 
 # vim: set ts=2 sts=2 sw=2:
+
+# Added by Antigravity
+export PATH="/Users/sungminoh/.antigravity/antigravity/bin:$PATH"
