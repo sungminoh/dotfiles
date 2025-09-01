@@ -56,3 +56,4 @@ npm-debug.log
 
 # Log files
 events.out.tfevents.*
+.parcel-cache
