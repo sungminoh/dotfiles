@@ -82,6 +82,13 @@ tasks = {
     '~/.config/terminator' : 'config/terminator',
     '~/.config/pudb/pudb.cfg' : 'config/pudb/pudb.cfg',
 
+    # Claude Code
+    '~/.claude/CLAUDE.md'  : 'claude/CLAUDE.md',
+    '~/.claude/commands'   : 'claude/commands',
+    '~/.claude/hooks'      : 'claude/hooks',
+    '~/.claude/skills'     : 'claude/skills',
+    '~/.claude/settings.json' : 'claude/settings.json',
+
     # pip and python
     #'~/.pip/pip.conf' : 'pip/pip.conf',
     '~/.pythonrc.py' : 'python/pythonrc.py',
