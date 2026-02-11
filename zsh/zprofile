@@ -134,3 +134,17 @@ rmvenv() {
         printf "${RED}No .python-version file in the current directory!${NORMAL}\n"
     fi
 }
+
+# Added by OrbStack: command-line tools and integration
+# This won't be added again if you remove it.
+source ~/.orbstack/shell/init.zsh 2>/dev/null || :
+
+# pnpm
+export PNPM_HOME="/Users/sungminoh/Library/pnpm"
+case ":$PATH:" in
+  *":$PNPM_HOME:"*) ;;
+  *) export PATH="$PNPM_HOME:$PATH" ;;
+esac
+# pnpm end
+
+alias cld="claude --dangerously-skip-permissions"
