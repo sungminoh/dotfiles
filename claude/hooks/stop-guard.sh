@@ -12,10 +12,12 @@ if [ "$STOP_HOOK_ACTIVE" = "true" ]; then
 fi
 
 CWD=$(echo "$INPUT" | jq -r '.cwd // ""')
+if [ -z "$CWD" ] || [ ! -d "$CWD" ]; then
+  exit 0
+fi
 
 # --- 검사 1: TypeScript 에러 체크 ---
 if [ -f "$CWD/tsconfig.json" ]; then
-  # npx tsc가 있으면 에러 체크
   if command -v npx &>/dev/null; then
     TSC_OUTPUT=$(cd "$CWD" && npx tsc --noEmit 2>&1)
     TSC_EXIT=$?
@@ -36,6 +38,49 @@ if [ -f "$CWD/.eslintrc.json" ] || [ -f "$CWD/.eslintrc.js" ] || [ -f "$CWD/esli
       echo "ESLint 에러가 남아있습니다. 수정해주세요:" >&2
       echo "$LINT_OUTPUT" | head -20 >&2
       exit 2
+    fi
+  fi
+fi
+
+# --- 검사 3: Python ruff check ---
+if [ -f "$CWD/pyproject.toml" ] || [ -f "$CWD/setup.py" ] || [ -f "$CWD/setup.cfg" ]; then
+  if command -v ruff &>/dev/null; then
+    RUFF_OUTPUT=$(cd "$CWD" && ruff check . 2>&1)
+    RUFF_EXIT=$?
+    if [ $RUFF_EXIT -ne 0 ]; then
+      echo "ruff 에러가 남아있습니다. 수정해주세요:" >&2
+      echo "$RUFF_OUTPUT" | head -20 >&2
+      exit 2
+    fi
+  elif command -v poetry &>/dev/null && [ -f "$CWD/pyproject.toml" ]; then
+    RUFF_OUTPUT=$(cd "$CWD" && poetry run ruff check . 2>&1)
+    RUFF_EXIT=$?
+    if [ $RUFF_EXIT -ne 0 ]; then
+      echo "ruff 에러가 남아있습니다. 수정해주세요:" >&2
+      echo "$RUFF_OUTPUT" | head -20 >&2
+      exit 2
+    fi
+  fi
+fi
+
+# --- 검사 4: Python mypy 타입 체크 ---
+if [ -f "$CWD/pyproject.toml" ]; then
+  # mypy 설정이 pyproject.toml에 있는지 확인
+  if grep -q '\[tool\.mypy\]' "$CWD/pyproject.toml" 2>/dev/null || grep -q '\[mypy\]' "$CWD/mypy.ini" 2>/dev/null; then
+    if command -v poetry &>/dev/null; then
+      MYPY_OUTPUT=$(cd "$CWD" && poetry run mypy . --no-error-summary 2>&1 | grep -E ": error:" | head -20)
+      if [ -n "$MYPY_OUTPUT" ]; then
+        echo "mypy 타입 에러가 남아있습니다. 수정해주세요:" >&2
+        echo "$MYPY_OUTPUT" >&2
+        exit 2
+      fi
+    elif command -v mypy &>/dev/null; then
+      MYPY_OUTPUT=$(cd "$CWD" && mypy . --no-error-summary 2>&1 | grep -E ": error:" | head -20)
+      if [ -n "$MYPY_OUTPUT" ]; then
+        echo "mypy 타입 에러가 남아있습니다. 수정해주세요:" >&2
+        echo "$MYPY_OUTPUT" >&2
+        exit 2
+      fi
     fi
   fi
 fi

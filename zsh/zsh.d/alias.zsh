@@ -198,7 +198,7 @@ function ghn() {
     if [[ $num_lines -gt 25 ]]; then num_lines=$((num_lines - 5)); fi  # more margin
     git history --color=always -n$num_lines "$@" | head -n$num_lines | less --QUIT-AT-EOF -F
 }
-alias gh='ghn'
+# alias gh='ghn'
 alias ghA='gh --all'
 if _version_check $GIT_VERSION "2.0"; then
   alias gha='gh --exclude=refs/stash --all'

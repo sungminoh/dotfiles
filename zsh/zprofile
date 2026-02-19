@@ -148,3 +148,5 @@ esac
 # pnpm end
 
 alias cld="claude --dangerously-skip-permissions"
+export GITHUB_PERSONAL_ACCESS_TOKEN="$(/opt/homebrew/bin/gh auth token)"
+
