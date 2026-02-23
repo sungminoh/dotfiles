@@ -94,10 +94,24 @@ if [ -n "$jsts_files" ]; then
     # tsc (only if tsconfig exists)
     ts_files=$(echo "$jsts_files" | grep -E '\.(ts|tsx)$' || true)
     if [ -n "$ts_files" ] && [ -f "$project_root/tsconfig.json" ]; then
-      tsc_out=$(cd "$project_root" && npx tsc --noEmit --pretty false 2>&1 | head -10)
+      tsc_out=$(cd "$project_root" && npx tsc --noEmit --pretty false 2>&1 | head -20)
       if [ -n "$tsc_out" ] && echo "$tsc_out" | grep -q "error TS"; then
         echo "[Hook] TypeScript errors:" >&2
         echo "$tsc_out" >&2
+        errors=1
+      fi
+    fi
+
+    # eslint (only if eslint config exists)
+    has_eslint=false
+    [ -f "$project_root/.eslintrc.json" ] || [ -f "$project_root/.eslintrc.js" ] || \
+      [ -f "$project_root/eslint.config.js" ] || [ -f "$project_root/eslint.config.mjs" ] && has_eslint=true
+    if [ "$has_eslint" = true ]; then
+      eslint_out=$(cd "$project_root" && echo "$jsts_files" | xargs npx eslint --max-warnings=0 2>&1 | head -20)
+      eslint_exit=$?
+      if [ $eslint_exit -ne 0 ] && [ -n "$eslint_out" ]; then
+        echo "[Hook] ESLint errors:" >&2
+        echo "$eslint_out" >&2
         errors=1
       fi
     fi
