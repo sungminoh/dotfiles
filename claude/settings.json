@@ -96,15 +96,6 @@
     ],
     "Stop": [
       {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "bash ~/.claude/hooks/stop-guard.sh",
-            "timeout": 120
-          }
-        ]
-      },
-      {
         "matcher": "*",
         "hooks": [
           {

@@ -6,7 +6,7 @@ user-invocable: true
 
 ## 동작
 
-1. `~/my-profile/` 하위 모든 파일을 읽어라
+1. `~/icloud/sync/personal_profile/` 하위 모든 파일을 읽어라
 2. 읽은 내용을 사용자의 프로파일로 이해하라
 
 ### 인자가 없으면
