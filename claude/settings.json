@@ -50,6 +50,17 @@
             "command": "~/.claude/hooks/pre-commit-lint.sh"
           }
         ]
+      },
+      {
+        "matcher": "Grep|Glob|Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"/Users/sungminoh/.claude/hooks/gitnexus/gitnexus-hook.cjs\"",
+            "timeout": 8000,
+            "statusMessage": "Enriching with GitNexus graph context..."
+          }
+        ]
       }
     ],
     "PostToolUse": [
@@ -108,7 +119,7 @@
   },
   "statusLine": {
     "type": "command",
-    "command": "bash -c '\"$(which node)\" \"$(ls -td ~/.claude/plugins/cache/claude-hud/claude-hud/*/ 2>/dev/null | head -1)dist/index.js\"'"
+    "command": "node /Users/sungminoh/.claude/hud/omc-hud.mjs"
   },
   "enabledPlugins": {
     "claude-hud@claude-hud": true,
@@ -128,7 +139,10 @@
     "code-review@claude-plugins-official": true,
     "hookify@claude-plugins-official": true,
     "typescript-lsp@claude-plugins-official": true,
-    "pyright-lsp@claude-plugins-official": true
+    "pyright-lsp@claude-plugins-official": true,
+    "oh-my-claudecode@omc": true,
+    "swift-lsp@claude-plugins-official": true
   },
-  "skipDangerousModePermissionPrompt": true
+  "skipDangerousModePermissionPrompt": true,
+  "effortLevel": "high"
 }
