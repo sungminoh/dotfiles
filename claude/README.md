@@ -34,8 +34,11 @@ claude/skills/
 ```bash
 git clone <this-repo> ~/.dotfiles && cd ~/.dotfiles
 ./install.py                    # symlinks ~/.claude → claude/
-./bootstrap/setup-claude.sh     # installs gstack, creates ~/.zshrc.secret
+./bootstrap/setup-claude.sh     # gstack + ~/.zshrc.secret
 ```
+
+Or run the umbrella `./bootstrap/setup-macos.sh` which also applies
+macOS defaults and installs personal Homebrew packages.
 
 On next `claude` launch, marketplaces auto-register and plugins in
 `enabledPlugins` are picked up.
