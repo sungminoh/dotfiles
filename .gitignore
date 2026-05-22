@@ -1,3 +1,17 @@
 # vim and neovim
 nvim/spell
 vim/spell
+
+# Claude Code
+# Skills are installed via marketplaces (see settings.json → extraKnownMarketplaces).
+# To track a personal skill, whitelist it explicitly here (e.g., !claude/skills/my-skill/).
+claude/skills/
+
+# OMC runtime state (sessions, notepad, plans, logs)
+.omc/
+
+# Misc logs
+logs/
+
+# Local secrets (sourced by zshrc if present)
+.zshrc.secret
