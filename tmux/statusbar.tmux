@@ -178,7 +178,7 @@ component-ram() {
       if ! command -v vm_stat 2>&1 > /dev/null; then return 1; fi
       mem_used=$(vm_stat | grep ' active\|wired ' | sed 's/[^0-9]//g' | paste -sd ' ' - | \
           awk -v pagesize=$(pagesize) '{ printf "%.2f\n", ($1 + $2) * pagesize / 1024^3 }')
-      mem_total=$(system_profiler SPHardwareDataType | grep "Memory:" | awk '{ print $2 }')
+      mem_total=$(sysctl -n hw.memsize | awk '{ printf "%.0f\n", $1 / 1024^3 }')
       mem_percentage=$(echo "$mem_used $mem_total" | awk '{ printf "%.0f", 100 * $1 / $2 }')
     ;;
     *) return 1;;
