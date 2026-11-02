@@ -1,13 +1,13 @@
 # Claude Code config
 
-This directory is symlinked to `~/.claude/` by `install.py`. Layout:
+`install.py` symlinks the entries below into `~/.claude/`. Layout:
 
 ```
 claude/
 ├── CLAUDE.md       # global instructions (rules, agent workflow)
 ├── settings.json   # hooks, plugins, marketplaces, status line
 ├── commands/       # custom slash commands
-├── hooks/          # PreToolUse / PostToolUse / Stop scripts
+├── hooks/          # reserved for custom hooks (currently empty)
 └── skills/         # GITIGNORED — installed via marketplaces
 ```
 
@@ -33,12 +33,34 @@ claude/skills/
 
 ```bash
 git clone <this-repo> ~/.dotfiles && cd ~/.dotfiles
-./install.py                    # symlinks ~/.claude → claude/
+./install.py                    # symlinks config entries into ~/.claude/
 ./bootstrap/setup-claude.sh     # gstack + ~/.zshrc.secret
 ```
 
 Or run the umbrella `./bootstrap/setup-macos.sh` which also applies
 macOS defaults and installs personal Homebrew packages.
 
-On next `claude` launch, marketplaces auto-register and plugins in
-`enabledPlugins` are picked up.
+Before launching Claude, check out the `banana` and `specrail` repositories
+at the local directory paths in `settings.json` → `extraKnownMarketplaces`,
+or update those paths to match your checkouts. The bootstrap script does
+not install these local marketplaces.
+
+On next `claude` launch, available marketplaces auto-register and plugins
+in `enabledPlugins` are picked up. Run `/oh-my-claudecode:omc-setup` to
+configure OMC and generate the HUD script used by `statusLine`.
+
+## Hooks and verification
+
+`settings.json` runs optional terminal integrations when their helpers
+are executable:
+
+- iTerm2 status: `~/.config/iterm2/cc-status`
+- TermPilot monitor: `~/.termpilot/bin/cc-monitor-hook.sh`
+
+Missing helpers are skipped. TermPilot's `PreToolUse` command uses `jq`
+to pass the event's tool name as `CLAUDE_TOOL_NAME`; without `jq`, it uses
+`unknown`. These helpers are installed separately from this repository.
+
+The former custom lint, project-detection, GitNexus, and memory-persistence
+hooks have been removed. Run the project's typecheck, lint, and tests
+before committing, as required by `CLAUDE.md`.
