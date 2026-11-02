@@ -7,7 +7,7 @@ claude/
 ├── CLAUDE.md       # global instructions (rules, agent workflow)
 ├── settings.json   # hooks, plugins, marketplaces, status line
 ├── commands/       # custom slash commands
-├── hooks/          # reserved for custom hooks (currently empty)
+├── hooks/          # optional custom hooks
 └── skills/         # GITIGNORED — installed via marketplaces
 ```
 
@@ -60,6 +60,9 @@ are executable:
 Missing helpers are skipped. TermPilot's `PreToolUse` command uses `jq`
 to pass the event's tool name as `CLAUDE_TOOL_NAME`; without `jq`, it uses
 `unknown`. These helpers are installed separately from this repository.
+
+`hooks/block-destructive-git.sh` is retained as an optional guard and is
+not registered by default.
 
 The former custom lint, project-detection, GitNexus, and memory-persistence
 hooks have been removed. Run the project's typecheck, lint, and tests

@@ -191,7 +191,7 @@
   "model": "opus[1m]",
   "skipDangerousModePermissionPrompt": true,
   "statusLine": {
-    "command": "node /Users/sungminoh/.claude/hud/omc-hud.mjs",
+    "command": "node ${CLAUDE_CONFIG_DIR:-$HOME/.claude}/hud/omc-hud.mjs",
     "type": "command"
   }
 }

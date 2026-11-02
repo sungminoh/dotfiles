@@ -281,3 +281,10 @@ fi
 [ -f "$HOME/.zshrc.secret" ] && source "$HOME/.zshrc.secret"
 
 # vim: set ts=2 sts=2 sw=2:
+
+# bun completions
+[ -s "/Users/sungminoh/.bun/_bun" ] && source "/Users/sungminoh/.bun/_bun"
+
+# bun
+export BUN_INSTALL="$HOME/.bun"
+export PATH="$BUN_INSTALL/bin:$PATH"

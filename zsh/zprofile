@@ -149,6 +149,6 @@ esac
 
 alias cld="claude --dangerously-skip-permissions"
 export GITHUB_PERSONAL_ACCESS_TOKEN="$(/opt/homebrew/bin/gh auth token)"
-
 export CLAUDE_CODE_NO_FLICKER=1
+
 alias cdx="codex --dangerously-bypass-approvals-and-sandbox"
