@@ -46,7 +46,8 @@ complete -o nospace -C /usr/local/bin/bit bit
 export PATH="/opt/homebrew/opt/python@3.14/libexec/bin:$PATH"
 export PYENV_ROOT="$HOME/.pyenv"
 command -v pyenv >/dev/null || export PATH="$PYENV_ROOT/bin:$PATH"
-eval "$(pyenv init -)"
+# Keep shell startup independent of rehash locks; rebuild shims explicitly when needed.
+eval "$(pyenv init --no-rehash - zsh)"
 eval "$(pyenv virtualenv-init -)"
 
 export PTPYTHON_CONFIG_HOME="/Users/sungminoh/.config/ptpython"
