@@ -62,7 +62,7 @@ Vision → Challenge → Plan → Execute → Principles Check → Review → Si
 ```
 ~/.claude/
 ├── CLAUDE.md              # 글로벌 규칙 (멈추지 마, 원칙 참조)
-├── settings.json          # Stop Hook, 플러그인 설정
+├── settings.json          # 터미널 상태 훅, 플러그인 설정
 ├── commands/
 │   ├── guide.md           # /guide - 이 파일
 │   ├── vision.md          # /vision
@@ -73,9 +73,7 @@ Vision → Challenge → Plan → Execute → Principles Check → Review → Si
 │   ├── review.md          # /review
 │   ├── simplify.md        # /simplify
 │   └── cycle.md           # /cycle
-└── hooks/
-    ├── stop-guard.sh      # tsc/eslint 에러 체크 (Stop Hook)
-    └── plan-template.md   # 플랜 템플릿 (참고용)
+└── hooks/                 # 사용자 훅 디렉토리 (현재 비어 있음)
 ```
 
 ### Per Project (프로젝트별 생성됨)
@@ -112,8 +110,9 @@ project/
 - `ARCHITECTURE.md` 읽고 구조 파악
 - 작업 후 관련 문서 업데이트
 
-### Stop Hook (작업 멈출 때)
-`stop-guard.sh`가 tsc/eslint 에러를 체크해서, 에러가 남아있으면 Claude가 계속 작업.
+### 커밋 전 검증
+`CLAUDE.md`에 따라 프로젝트의 typecheck·lint·테스트를 커밋 전에 직접 실행.
+기존 검증 훅은 제거되었으며, 현재 설정된 훅은 iTerm2·TermPilot 터미널 상태 표시용.
 
 ### /cycle 파이프라인
 ```
@@ -135,7 +134,7 @@ Vision ──→ Challenge ──→ Plan ──→ Execute ──→ Principles
 | 2. 삭제하라 | `/simplify` | "지울 수 있는 거 다 찾아" |
 | 3. 단순화/최적화 | `/principles`, `/review` | "원칙에 맞나? 품질은?" |
 | 4. 사이클 가속 | `/exec-plan`, `/cycle` | "멈추지 말고 끝까지" |
-| 5. 자동화 | `/doc`, Stop Hook | "지식을 자동 유지" |
+| 5. 자동화 | `/doc`, `/cycle` | "지식을 자동 유지" |
 
 ---
 
