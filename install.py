@@ -85,8 +85,8 @@ tasks = {
 
     # Claude Code
     '~/.claude/CLAUDE.md'  : 'claude/CLAUDE.md',
-    '~/.claude/commands'   : 'claude/commands',
     '~/.claude/hooks'      : 'claude/hooks',
+    '~/.claude/rules'      : 'claude/rules',
     '~/.claude/skills'     : 'claude/skills',
     '~/.claude/settings.json' : 'claude/settings.json',
 

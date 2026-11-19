@@ -36,13 +36,15 @@
 
 ## Agent & Skill Workflows
 
-For complex tasks, use the agents (`subagent_type`) and skills below.
+For complex tasks, use the agents (`subagent_type`) and skills below. The full list is in `~/.claude/rules/agents.md`.
 
 ### Feature Development
 1. `Plan` agent → implementation plan
 2. `superpowers:test-driven-development` skill → implement with TDD
 3. `feature-dev:code-reviewer` agent + `/security-review` (in parallel) → review + security check
 4. Commit (run typecheck, lint, and tests yourself before committing)
+
+For a new project or major new functionality, first search for battle-tested skeleton projects, evaluate candidates with parallel agents (security, extensibility, relevance, implementation plan), and build within the structure of the best match.
 
 ### Bug Fix
 1. `superpowers:systematic-debugging` skill → root-cause analysis
@@ -51,7 +53,7 @@ For complex tasks, use the agents (`subagent_type`) and skills below.
 
 ### Refactoring
 1. `feature-dev:code-architect` → target architecture design
-2. `code-simplifier:code-simplifier` → remove unnecessary code
+2. `/simplify` → remove unnecessary code
 3. `feature-dev:code-reviewer` + `/security-review` (in parallel) → quality + security verification
 
 ### Principles
