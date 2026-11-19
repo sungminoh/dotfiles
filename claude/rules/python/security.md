@@ -6,7 +6,9 @@ paths:
 
 # Python Security
 
-## Secrets with pydantic-settings
+## Secrets
+
+Read secrets from the environment (pydantic-settings if the project uses it):
 
 ```python
 # Never

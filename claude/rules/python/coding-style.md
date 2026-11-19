@@ -6,9 +6,11 @@ paths:
 
 # Python Coding Style
 
-## Immutability (critical)
+Follow the project's existing conventions and tooling first. These are defaults.
 
-Always create new objects. Never mutate.
+## Immutability
+
+Prefer returning new objects over mutating arguments, and frozen dataclasses for value types. Local mutation inside a function is fine.
 
 ```python
 from dataclasses import dataclass, replace
@@ -34,7 +36,7 @@ def rename(user: User, name: str) -> User:
 
 ## File organization
 
-Many small files over a few large ones:
+Prefer cohesive, reasonably sized files:
 - High cohesion, low coupling.
 - 200 to 400 lines typical, 800 maximum.
 - Extract utilities into separate modules.
@@ -62,7 +64,7 @@ except Exception:
 
 ## Input validation
 
-Validate all user input with Pydantic:
+Validate external input at boundaries (Pydantic if the project uses it):
 
 ```python
 from pydantic import BaseModel, EmailStr, Field
@@ -76,7 +78,7 @@ validated = UserInput(email=input_email, age=input_age)  # raises ValidationErro
 
 ## Type hints (mandatory)
 
-Annotate every function. Use built-in generics and `X | None`:
+Annotate public functions. Use built-in generics and `X | None`:
 
 ```python
 from collections.abc import Sequence
@@ -97,12 +99,12 @@ mypy src/
 ## Checklist before marking work complete
 
 - [ ] Readable, well-named code (snake_case)
-- [ ] Functions under 50 lines
+- [ ] Functions short and focused
 - [ ] Files under 800 lines
 - [ ] Nesting no deeper than 4 levels
 - [ ] Specific exceptions, handled explicitly
-- [ ] No `print()`; use `logging`
+- [ ] Libraries/services use `logging`, not `print()` (CLI output may use `print`)
 - [ ] No hardcoded values; use constants or config
-- [ ] No mutation
-- [ ] Type hints on all functions
+- [ ] No mutation of arguments
+- [ ] Type hints on public functions
 - [ ] Docstrings on public functions and classes

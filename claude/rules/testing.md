@@ -1,21 +1,19 @@
 # Testing
 
-## Minimum coverage: 80%
+Follow the project's existing test setup and coverage targets first. The rules below are defaults for projects that don't define their own.
 
-All three test types are required:
-1. **Unit tests**: individual functions, utilities, classes.
-2. **Integration tests**: API endpoints, database operations.
-3. **E2E tests**: critical user flows (Playwright).
+## Defaults
+
+- Aim for ~80% coverage on new or changed code.
+- Unit tests for logic; integration tests where code crosses an API or database boundary; E2E (Playwright) only for critical user flows in apps that have a UI.
+- Scripts, prototypes, and config changes don't need a full test pyramid.
 
 ## Test-driven development
 
-Mandatory workflow:
-1. Write the test first (RED).
-2. Run it. It must fail.
-3. Write the minimal implementation (GREEN).
-4. Run it. It must pass.
-5. Refactor (IMPROVE).
-6. Verify coverage (80%+).
+Prefer test-first for new features and bug fixes (`superpowers:test-driven-development`):
+1. Write the test. Run it; it must fail.
+2. Write the minimal implementation. Run it; it must pass.
+3. Refactor.
 
 ## When tests fail
 

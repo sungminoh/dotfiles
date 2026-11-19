@@ -1,6 +1,6 @@
 # Agents and Skills
 
-Only the agents and skills listed here are available. Use these exact names.
+The preferred agents and skills for the workflows in CLAUDE.md. Other installed agents and skills may be used when they fit better.
 
 ## Built-in subagents
 
@@ -50,9 +50,4 @@ Run agent 1, wait, then agent 2, wait, then agent 3
 
 ## Multi-perspective analysis
 
-For complex problems, split roles across subagents:
-- Factual reviewer
-- Senior engineer
-- Security expert
-- Consistency reviewer
-- Redundancy checker
+For genuinely complex or high-stakes problems, consider splitting review roles across a few subagents (e.g. correctness, security, consistency). Don't spawn agents for work a handful of tool calls can do.

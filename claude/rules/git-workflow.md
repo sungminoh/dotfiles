@@ -22,6 +22,6 @@ Attribution is disabled in `settings.json` (`"attribution": {"commit": "", "pr":
 
 ## Before committing
 
-1. Run the project's linter, formatter, type checker, and full test suite with coverage. Do not commit on failure.
+1. Run the project's linter, formatter, type checker, and tests (whatever the project has). Do not commit on failure.
 2. Fix every critical and high-severity review finding.
 3. Write detailed commit messages in the format above.
