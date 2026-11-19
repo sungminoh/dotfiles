@@ -1,8 +1,171 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-settings.json",
-  "agentPushNotifEnabled": true,
-  "editorMode": "vim",
-  "effortLevel": "high",
+  "env": {
+    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
+  },
+  "model": "opus[1m]",
+  "deniedMcpServers": [
+    {
+      "serverName": "claude.ai Figma"
+    },
+    {
+      "serverName": "claude.ai Slack"
+    },
+    {
+      "serverName": "claude.ai Notion"
+    }
+  ],
+  "hooks": {
+    "Notification": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if [ -x \"$HOME/.config/iterm2/cc-status\" ]; then \"$HOME/.config/iterm2/cc-status\"; fi"
+          }
+        ]
+      }
+    ],
+    "PermissionRequest": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if [ -x \"$HOME/.config/iterm2/cc-status\" ]; then \"$HOME/.config/iterm2/cc-status\"; fi"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if [ -x \"$HOME/.termpilot/bin/cc-monitor-hook.sh\" ]; then \"$HOME/.termpilot/bin/cc-monitor-hook.sh\" post_tool; fi"
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if [ -x \"$HOME/.config/iterm2/cc-status\" ]; then \"$HOME/.config/iterm2/cc-status\"; fi"
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/block-destructive-git.sh"
+          }
+        ]
+      },
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if [ -x \"$HOME/.termpilot/bin/cc-monitor-hook.sh\" ]; then CLAUDE_TOOL_NAME=\"$(jq -r '.tool_name // \"unknown\"' 2>/dev/null || printf unknown)\" \"$HOME/.termpilot/bin/cc-monitor-hook.sh\" pre_tool; fi"
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if [ -x \"$HOME/.config/iterm2/cc-status\" ]; then \"$HOME/.config/iterm2/cc-status\"; fi"
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if [ -x \"$HOME/.config/iterm2/cc-status\" ]; then \"$HOME/.config/iterm2/cc-status\"; fi"
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if [ -x \"$HOME/.termpilot/bin/cc-monitor-hook.sh\" ]; then \"$HOME/.termpilot/bin/cc-monitor-hook.sh\" session_start; fi"
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if [ -x \"$HOME/.config/iterm2/cc-status\" ]; then \"$HOME/.config/iterm2/cc-status\"; fi"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if [ -x \"$HOME/.termpilot/bin/cc-monitor-hook.sh\" ]; then \"$HOME/.termpilot/bin/cc-monitor-hook.sh\" stop; fi"
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if [ -x \"$HOME/.config/iterm2/cc-status\" ]; then \"$HOME/.config/iterm2/cc-status\"; fi"
+          }
+        ]
+      }
+    ],
+    "StopFailure": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if [ -x \"$HOME/.config/iterm2/cc-status\" ]; then \"$HOME/.config/iterm2/cc-status\"; fi"
+          }
+        ]
+      }
+    ],
+    "SubagentStop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if [ -x \"$HOME/.config/iterm2/cc-status\" ]; then \"$HOME/.config/iterm2/cc-status\"; fi"
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if [ -x \"$HOME/.config/iterm2/cc-status\" ]; then \"$HOME/.config/iterm2/cc-status\"; fi"
+          }
+        ]
+      }
+    ]
+  },
+  "statusLine": {
+    "type": "command",
+    "command": "bash -c 'cols=${COLUMNS:-}; case \"$cols\" in \"\"|*[!0-9]*) cols=$(stty size </dev/tty 2>/dev/null | awk '\"'\"'{print $2}'\"'\"');; esac; case \"$cols\" in \"\"|*[!0-9]*) cols=120;; esac; export COLUMNS=$(( cols > 4 ? cols - 4 : 1 )); plugin_dir=$(ls -d \"${CLAUDE_CONFIG_DIR:-$HOME/.claude}\"/plugins/cache/claude-hud/claude-hud/*/ 2>/dev/null | awk -F/ '\"'\"'{ print $(NF-1) \"\\t\" $(0) }'\"'\"' | grep -E '\"'\"'^[0-9]+\\.[0-9]+\\.[0-9]+[[:space:]]'\"'\"' | sort -t. -k1,1n -k2,2n -k3,3n -k4,4n | tail -1 | cut -f2-); [ -n \"$plugin_dir\" ] && [ -f \"${plugin_dir}dist/index.js\" ] || exit 0; exec \"/opt/homebrew/bin/node\" \"${plugin_dir}dist/index.js\"'"
+  },
   "enabledPlugins": {
     "banana@banana-local": false,
     "claude-hud@claude-hud": true,
@@ -17,7 +180,7 @@
     "finance@synced": false,
     "frontend-design@claude-plugins-official": true,
     "marketing@synced": false,
-    "pdf-viewer@synced": false,
+    "pdf-viewer@synced": true,
     "product-management@synced": false,
     "productivity@synced": false,
     "pyright-lsp@claude-plugins-official": true,
@@ -25,168 +188,34 @@
     "specrail@specrail": false,
     "superpowers@claude-plugins-official": true,
     "typescript-lsp@claude-plugins-official": true,
-    "vercel@claude-plugins-official": false
-  },
-  "env": {
-    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
+    "vercel@claude-plugins-official": false,
+    "github@claude-plugins-official": true,
+    "playwright@claude-plugins-official": true,
+    "swift-lsp@claude-plugins-official": true
   },
   "extraKnownMarketplaces": {
     "banana-local": {
       "source": {
-        "path": "/Users/sungminoh/Development/banana",
-        "source": "directory"
+        "source": "directory",
+        "path": "/Users/sungminoh/Development/banana"
       }
     },
     "specrail": {
       "source": {
-        "path": "/Users/sungminoh/Development/specrail",
-        "source": "directory"
+        "source": "directory",
+        "path": "/Users/sungminoh/Development/specrail"
+      }
+    },
+    "claude-hud": {
+      "source": {
+        "source": "github",
+        "repo": "jarrodwatts/claude-hud"
       }
     }
   },
-  "hooks": {
-    "Notification": [
-      {
-        "hooks": [
-          {
-            "command": "if [ -x \"$HOME/.config/iterm2/cc-status\" ]; then \"$HOME/.config/iterm2/cc-status\"; fi",
-            "type": "command"
-          }
-        ]
-      }
-    ],
-    "PermissionRequest": [
-      {
-        "hooks": [
-          {
-            "command": "if [ -x \"$HOME/.config/iterm2/cc-status\" ]; then \"$HOME/.config/iterm2/cc-status\"; fi",
-            "type": "command"
-          }
-        ]
-      }
-    ],
-    "PostToolUse": [
-      {
-        "hooks": [
-          {
-            "command": "if [ -x \"$HOME/.termpilot/bin/cc-monitor-hook.sh\" ]; then \"$HOME/.termpilot/bin/cc-monitor-hook.sh\" post_tool; fi",
-            "type": "command"
-          }
-        ],
-        "matcher": ""
-      },
-      {
-        "hooks": [
-          {
-            "command": "if [ -x \"$HOME/.config/iterm2/cc-status\" ]; then \"$HOME/.config/iterm2/cc-status\"; fi",
-            "type": "command"
-          }
-        ]
-      }
-    ],
-    "PreToolUse": [
-      {
-        "hooks": [
-          {
-            "command": "if [ -x \"$HOME/.termpilot/bin/cc-monitor-hook.sh\" ]; then CLAUDE_TOOL_NAME=\"$(jq -r '.tool_name // \"unknown\"' 2>/dev/null || printf unknown)\" \"$HOME/.termpilot/bin/cc-monitor-hook.sh\" pre_tool; fi",
-            "type": "command"
-          }
-        ],
-        "matcher": ""
-      },
-      {
-        "hooks": [
-          {
-            "command": "if [ -x \"$HOME/.config/iterm2/cc-status\" ]; then \"$HOME/.config/iterm2/cc-status\"; fi",
-            "type": "command"
-          }
-        ]
-      }
-    ],
-    "SessionEnd": [
-      {
-        "hooks": [
-          {
-            "command": "if [ -x \"$HOME/.config/iterm2/cc-status\" ]; then \"$HOME/.config/iterm2/cc-status\"; fi",
-            "type": "command"
-          }
-        ]
-      }
-    ],
-    "SessionStart": [
-      {
-        "hooks": [
-          {
-            "command": "if [ -x \"$HOME/.termpilot/bin/cc-monitor-hook.sh\" ]; then \"$HOME/.termpilot/bin/cc-monitor-hook.sh\" session_start; fi",
-            "type": "command"
-          }
-        ],
-        "matcher": ""
-      },
-      {
-        "hooks": [
-          {
-            "command": "if [ -x \"$HOME/.config/iterm2/cc-status\" ]; then \"$HOME/.config/iterm2/cc-status\"; fi",
-            "type": "command"
-          }
-        ]
-      }
-    ],
-    "Stop": [
-      {
-        "hooks": [
-          {
-            "command": "if [ -x \"$HOME/.termpilot/bin/cc-monitor-hook.sh\" ]; then \"$HOME/.termpilot/bin/cc-monitor-hook.sh\" stop; fi",
-            "type": "command"
-          }
-        ],
-        "matcher": ""
-      },
-      {
-        "hooks": [
-          {
-            "command": "if [ -x \"$HOME/.config/iterm2/cc-status\" ]; then \"$HOME/.config/iterm2/cc-status\"; fi",
-            "type": "command"
-          }
-        ]
-      }
-    ],
-    "StopFailure": [
-      {
-        "hooks": [
-          {
-            "command": "if [ -x \"$HOME/.config/iterm2/cc-status\" ]; then \"$HOME/.config/iterm2/cc-status\"; fi",
-            "type": "command"
-          }
-        ]
-      }
-    ],
-    "SubagentStop": [
-      {
-        "hooks": [
-          {
-            "command": "if [ -x \"$HOME/.config/iterm2/cc-status\" ]; then \"$HOME/.config/iterm2/cc-status\"; fi",
-            "type": "command"
-          }
-        ]
-      }
-    ],
-    "UserPromptSubmit": [
-      {
-        "hooks": [
-          {
-            "command": "if [ -x \"$HOME/.config/iterm2/cc-status\" ]; then \"$HOME/.config/iterm2/cc-status\"; fi",
-            "type": "command"
-          }
-        ]
-      }
-    ]
-  },
-  "inputNeededNotifEnabled": true,
-  "model": "opus[1m]",
+  "effortLevel": "high",
   "skipDangerousModePermissionPrompt": true,
-  "statusLine": {
-    "command": "bash -c 'cols=${COLUMNS:-}; case \"$cols\" in \"\"|*[!0-9]*) cols=$(stty size </dev/tty 2>/dev/null | awk '\"'\"'{print $2}'\"'\"');; esac; case \"$cols\" in \"\"|*[!0-9]*) cols=120;; esac; export COLUMNS=$(( cols > 4 ? cols - 4 : 1 )); plugin_dir=$(ls -d \"${CLAUDE_CONFIG_DIR:-$HOME/.claude}\"/plugins/cache/claude-hud/claude-hud/*/ 2>/dev/null | awk -F/ '\"'\"'{ print $(NF-1) \"\\t\" $(0) }'\"'\"' | grep -E '\"'\"'^[0-9]+\\.[0-9]+\\.[0-9]+[[:space:]]'\"'\"' | sort -t. -k1,1n -k2,2n -k3,3n -k4,4n | tail -1 | cut -f2-); [ -n \"$plugin_dir\" ] && [ -f \"${plugin_dir}dist/index.js\" ] || exit 0; exec \"/opt/homebrew/bin/node\" \"${plugin_dir}dist/index.js\"'",
-    "type": "command"
-  }
+  "editorMode": "vim",
+  "inputNeededNotifEnabled": true,
+  "agentPushNotifEnabled": true
 }
