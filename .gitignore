@@ -7,9 +7,6 @@ vim/spell
 # To track a personal skill, whitelist it explicitly here (e.g., !claude/skills/my-skill/).
 claude/skills/
 
-# OMC runtime state (sessions, notepad, plans, logs)
-.omc/
-
 # Misc logs
 logs/
 
