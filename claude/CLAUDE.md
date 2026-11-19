@@ -36,7 +36,7 @@
 
 ## 에이전트·스킬 워크플로우
 
-복잡한 작업에는 아래 에이전트(`subagent_type`)와 스킬을 활용하라. 세부 매핑은 `~/.claude/rules/agents.md` 참고.
+복잡한 작업에는 아래 에이전트(`subagent_type`)와 스킬을 활용하라.
 
 ### Feature 개발
 1. `Plan` 에이전트 → 구현 계획 수립
