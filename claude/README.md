@@ -13,13 +13,9 @@ claude/
 
 ## How skills are managed
 
-Skills are **not** vendored in this repo. They come from two sources:
-
-1. **Marketplaces** declared in `settings.json` → `extraKnownMarketplaces`.
-   Claude Code installs and updates these automatically.
-2. **External installers** (e.g. `gstack` clones itself into
-   `~/.claude/skills/gstack/`). Run `../bootstrap/setup-claude.sh` on a
-   fresh machine to handle these.
+Skills are **not** vendored in this repo. They come from **marketplaces**
+declared in `settings.json` → `extraKnownMarketplaces`; Claude Code installs
+and updates these automatically. (gstack was removed on 2026-11-19.)
 
 `claude/skills/` is fully gitignored. If you write a personal skill and
 want it tracked, whitelist it in the root `.gitignore`:
@@ -34,7 +30,7 @@ claude/skills/
 ```bash
 git clone <this-repo> ~/.dotfiles && cd ~/.dotfiles
 ./install.py                    # symlinks config entries into ~/.claude/
-./bootstrap/setup-claude.sh     # gstack + ~/.zshrc.secret
+./bootstrap/setup-claude.sh     # ~/.zshrc.secret template
 ```
 
 Or run the umbrella `./bootstrap/setup-macos.sh` which also applies
@@ -46,8 +42,8 @@ or update those paths to match your checkouts. The bootstrap script does
 not install these local marketplaces.
 
 On next `claude` launch, available marketplaces auto-register and plugins
-in `enabledPlugins` are picked up. Run `/oh-my-claudecode:omc-setup` to
-configure OMC and generate the HUD script used by `statusLine`.
+in `enabledPlugins` are picked up. `statusLine` runs the `claude-hud`
+plugin's latest cached version (re-run `/claude-hud:setup` if it breaks).
 
 ## Hooks and verification
 

@@ -24,17 +24,6 @@ fi
 
 mkdir -p "${SKILLS_DIR}"
 
-# gstack — installed via raw git clone + ./setup (not a marketplace)
-if [ ! -d "${SKILLS_DIR}/gstack/.git" ]; then
-  log "Installing gstack..."
-  git clone --single-branch --depth 1 \
-    https://github.com/garrytan/gstack.git \
-    "${SKILLS_DIR}/gstack"
-  ( cd "${SKILLS_DIR}/gstack" && ./setup )
-else
-  log "gstack already installed (skip)"
-fi
-
 # Local secrets file template
 SECRET_FILE="${HOME}/.zshrc.secret"
 if [ ! -f "${SECRET_FILE}" ]; then
@@ -50,5 +39,4 @@ else
   log "${SECRET_FILE} exists (skip)"
 fi
 
-log "Done. Marketplaces (omc, etc.) auto-install on next Claude Code launch."
-log "Verify with: claude /omc-help  or  claude /gstack"
+log "Done. Marketplaces auto-install on next Claude Code launch."
