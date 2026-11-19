@@ -90,6 +90,10 @@ tasks = {
     '~/.claude/skills'     : 'claude/skills',
     '~/.claude/settings.json' : 'claude/settings.json',
 
+    # Codex
+    '~/.codex/AGENTS.md'   : 'codex/AGENTS.md',
+    '~/.codex/hooks.json'  : 'codex/hooks.json',
+
     # pip and python
     #'~/.pip/pip.conf' : 'pip/pip.conf',
     '~/.pythonrc.py' : 'python/pythonrc.py',

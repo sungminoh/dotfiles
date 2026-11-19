@@ -1,0 +1,44 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if [ -x \"$HOME/.termpilot/bin/cc-monitor-hook.sh\" ]; then \"$HOME/.termpilot/bin/cc-monitor-hook.sh\" session_start; fi"
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if [ -x \"$HOME/.termpilot/bin/cc-monitor-hook.sh\" ]; then \"$HOME/.termpilot/bin/cc-monitor-hook.sh\" pre_tool; fi"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if [ -x \"$HOME/.termpilot/bin/cc-monitor-hook.sh\" ]; then \"$HOME/.termpilot/bin/cc-monitor-hook.sh\" post_tool; fi"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if [ -x \"$HOME/.termpilot/bin/cc-monitor-hook.sh\" ]; then \"$HOME/.termpilot/bin/cc-monitor-hook.sh\" stop; fi"
+          }
+        ]
+      }
+    ]
+  }
+}
