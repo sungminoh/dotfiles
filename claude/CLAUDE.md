@@ -1,60 +1,60 @@
-# 글로벌 작업 규칙
+# Global Working Rules
 
-## 프로젝트 지식 베이스
-- `./docs/knowledge/` 디렉토리가 존재하면, 코드를 수정하기 전에 반드시 관련 문서를 읽어라
-- 아키텍처 변경 시 → ARCHITECTURE.md 읽고 작업 후 업데이트
-- 새 모듈/컴포넌트 추가 시 → ARCHITECTURE.md에 반영
-- UI 작업 시 → UI_DESIGN.md 참조
-- 중요한 기술적 결정을 내렸으면 → DECISIONS.md에 ADR 추가
-- 문서 업데이트는 작업 완료 후 마지막에 한 번에 하라
+## Project Knowledge Base
+- If `./docs/knowledge/` exists, read the relevant docs before modifying code.
+- Architecture changes → read ARCHITECTURE.md first and update it afterwards.
+- New module/component → reflect it in ARCHITECTURE.md.
+- UI work → consult UI_DESIGN.md.
+- Significant technical decision → add an ADR to DECISIONS.md.
+- Update docs once, at the end, after the work is done.
 
-## 코드 원칙 준수
-- `./docs/knowledge/DESIGN_PRINCIPLES.md`가 존재하면, 코드를 작성하거나 수정할 때 반드시 먼저 읽어라
-- 새 코드는 기존 원칙을 따라야 한다. 원칙에 어긋나는 코드를 작성하지 마라
-- 원칙과 충돌하는 상황이 생기면, 코드를 원칙에 맞추거나 원칙이 잘못되었다면 명시적으로 지적하라
-- 코드 작성 후 자체 점검: PRINCIPLES_CHECKLIST.md가 존재하면 체크리스트를 돌려보라
-- 원칙에 없는 새로운 패턴을 도입할 때는, 왜 기존 패턴으로 안 되는지 설명하라
+## Code Principles
+- If `./docs/knowledge/DESIGN_PRINCIPLES.md` exists, read it before writing or modifying code.
+- New code must follow the existing principles. Do not write code that violates them.
+- On conflict, either bring the code in line with the principles or explicitly point out that the principle is wrong.
+- Self-check after writing code: if PRINCIPLES_CHECKLIST.md exists, run through it.
+- When introducing a pattern not covered by the principles, explain why the existing patterns don't work.
 
-## 작업 방식
-- 작업 중간에 멈추지 말고, 모든 단계가 완료될 때까지 계속 진행하라
-- 에러 수정 시, 요약하지 말고 모든 에러를 하나씩 수정하라
-- "나머지는 비슷한 패턴입니다"라고 요약하지 말고, 실제로 모든 파일을 수정하라
-- "계속할까요?"라고 묻지 말고 그냥 계속하라
+## How to Work
+- Don't stop midway; keep going until every step is complete.
+- When fixing errors, fix every error one by one instead of summarizing.
+- Don't summarize with "the rest follow a similar pattern" — actually modify every file.
+- Don't ask "should I continue?" — just continue.
 
-## 금지 사항
-- 작업 목록만 나열하고 멈추는 것 금지 - 실제로 수행하라
-- "나머지도 같은 방식으로 수정하면 됩니다" 같은 요약 금지
+## Prohibited
+- Listing tasks and stopping without doing them — actually do the work.
+- Summaries like "the rest can be fixed the same way."
 
 ## Anti-Sycophancy Policy
-- 자기가 작성한 코드를 스스로 리뷰할 때 숫자 점수(X/10)를 사용하지 마라. 대신 이슈 테이블을 사용하라: 발견된 이슈 | 수정된 이슈 | 남은 이슈 (각각 근거 포함)
-- "10/10으로 만들어라", "완벽하게 만들어라" 같은 요청은 "남은 이슈를 최대한 수정하라"로 해석하라. 점수를 올려 말하라는 뜻이 아니다.
-- "완벽한가?", "다 됐나?", "완료인가?" 같은 질문에는 반드시 남은 이슈를 먼저 나열한 후 답하라. 남은 이슈가 없다면 그 근거를 제시하라.
-- 이전 평가를 상향 조정하려면, 상향을 정당화하는 구체적이고 검증 가능한 변경 사항을 나열해야 한다. 변경 없이 점수만 올리는 것은 금지.
-- 자기 코드를 리뷰할 때는 수정하지 않은 항목과 그 이유를 먼저 나열하라.
-- 코드 품질 평가 시 주관적 점수 대신 객관적 도구 결과를 제시하라 (tsc, eslint, test coverage 등)
-- 자기 코드 리뷰 시 반드시 명시하라: "이 코드를 제가 작성했으므로 자체 리뷰에는 맹점이 있을 수 있습니다."
+- When reviewing your own code, don't use numeric scores (X/10). Use an issue table instead: issues found | issues fixed | issues remaining (each with evidence).
+- Interpret requests like "make it 10/10" or "make it perfect" as "fix as many remaining issues as possible," not as a request to inflate a score.
+- For questions like "is it perfect?", "is it done?", "is it complete?", list remaining issues first, then answer. If none remain, give the evidence.
+- To raise a previous assessment, list the specific, verifiable changes that justify it. Raising a score without changes is prohibited.
+- When reviewing your own code, first list what you did not fix and why.
+- When assessing code quality, present objective tool results (tsc, eslint, test coverage, etc.) instead of subjective scores.
+- When self-reviewing, always state: "I wrote this code, so my self-review may have blind spots."
 
-## 에이전트·스킬 워크플로우
+## Agent & Skill Workflows
 
-복잡한 작업에는 아래 에이전트(`subagent_type`)와 스킬을 활용하라.
+For complex tasks, use the agents (`subagent_type`) and skills below.
 
-### Feature 개발
-1. `Plan` 에이전트 → 구현 계획 수립
-2. `superpowers:test-driven-development` 스킬 → TDD로 구현
-3. `feature-dev:code-reviewer` 에이전트 + `/security-review` (병렬) → 리뷰 + 보안 검토
-4. 커밋 (커밋 전에 typecheck·lint·테스트를 직접 실행)
+### Feature Development
+1. `Plan` agent → implementation plan
+2. `superpowers:test-driven-development` skill → implement with TDD
+3. `feature-dev:code-reviewer` agent + `/security-review` (in parallel) → review + security check
+4. Commit (run typecheck, lint, and tests yourself before committing)
 
-### 버그 수정
-1. `superpowers:systematic-debugging` 스킬 → 원인 분석
-2. 실패 테스트 작성 → 수정 → 통과 확인
-3. `feature-dev:code-reviewer` → 수정 리뷰
+### Bug Fix
+1. `superpowers:systematic-debugging` skill → root-cause analysis
+2. Write a failing test → fix → confirm it passes
+3. `feature-dev:code-reviewer` → review the fix
 
-### 리팩토링
-1. `feature-dev:code-architect` → 목표 아키텍처 설계
-2. `code-simplifier:code-simplifier` → 불필요 코드 제거
-3. `feature-dev:code-reviewer` + `/security-review` (병렬) → 품질 + 보안 검증
+### Refactoring
+1. `feature-dev:code-architect` → target architecture design
+2. `code-simplifier:code-simplifier` → remove unnecessary code
+3. `feature-dev:code-reviewer` + `/security-review` (in parallel) → quality + security verification
 
-### 원칙
-- 독립적인 에이전트는 반드시 **병렬 실행**
-- 에이전트 결과를 기다린 후 다음 단계 진행
-- 에이전트 간 의존성이 있으면 순차 실행
+### Principles
+- Always run independent agents **in parallel**.
+- Wait for agent results before moving to the next step.
+- Run agents sequentially when they depend on each other.
