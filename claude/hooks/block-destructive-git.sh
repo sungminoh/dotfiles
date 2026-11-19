@@ -17,7 +17,6 @@ input=$(cat)
 cmd=$(echo "$input" | jq -r '.tool_input.command // ""')
 
 if [ "${ALLOW_DESTRUCTIVE_GIT:-0}" = "1" ] || echo "$cmd" | grep -q 'ALLOW_DESTRUCTIVE_GIT=1'; then
-  echo "$input"
   exit 0
 fi
 
@@ -36,5 +35,4 @@ if echo "$cmd" | grep -qE "$DESTRUCTIVE"; then
   exit 2
 fi
 
-echo "$input"
 exit 0
