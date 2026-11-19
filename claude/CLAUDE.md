@@ -36,13 +36,13 @@
 
 ## Agent & Skill Workflows
 
-For complex tasks, use the agents (`subagent_type`) and skills below. The full list is in `~/.claude/rules/agents.md`.
+For complex tasks, use the agents (`subagent_type`) and skills below. The full list is in `~/.claude/rules/agents.md`. Scale the workflow to the task: small or low-risk changes can skip steps, and the project's own conventions take precedence.
 
 ### Feature Development
 1. `Plan` agent → implementation plan
-2. `superpowers:test-driven-development` skill → implement with TDD
+2. `superpowers:test-driven-development` skill → prefer test-first
 3. `feature-dev:code-reviewer` agent + `/security-review` (in parallel) → review + security check
-4. Commit (run typecheck, lint, and tests yourself before committing)
+4. Commit (run the project's checks yourself before committing)
 
 For a new project or major new functionality, first search for battle-tested skeleton projects, evaluate candidates with parallel agents (security, extensibility, relevance, implementation plan), and build within the structure of the best match.
 
@@ -57,6 +57,6 @@ For a new project or major new functionality, first search for battle-tested ske
 3. `feature-dev:code-reviewer` + `/security-review` (in parallel) → quality + security verification
 
 ### Principles
-- Always run independent agents **in parallel**.
+- Run independent agents **in parallel**. Don't spawn agents for work a few tool calls can do.
 - Wait for agent results before moving to the next step.
 - Run agents sequentially when they depend on each other.
